@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Синяя Изолента — Инженерный хаб</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* --- ОПРЕДЕЛЕНИЕ ЦВЕТОВЫХ ТЕМ --- */
+        :root { --main-blue: #0038a8; --bg: #f3f4f6; --text: #1f2937; --card: #ffffff; }
+        
+        body.theme-classic { --main-blue: #0038a8; --bg: #f3f4f6; --text: #1f2937; --card: #ffffff; }
+        body.theme-dark { --main-blue: #3b82f6; --bg: #111827; --text: #f9fafb; --card: #1f2937; }
+        body.theme-metal { --main-blue: #64748b; --bg: #cbd5e1; --text: #0f172a; --card: #f1f5f9; }
+        body.theme-safety { --main-blue: #fbbf24; --bg: #fffbeb; --text: #78350f; --card: #ffffff; }
+        body.theme-garage { --main-blue: #ef4444; --bg: #18181b; --text: #fafafa; --card: #27272a; }
+
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; transition: 0.3s; }
+        .page { display: none; padding: 20px; padding-bottom: 100px; min-height: 100vh; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); border-top: 2px solid var(--main-blue); display: flex; justify-content: space-around; padding: 10px; z-index: 1000; }
+        .nav-btn { font-size: 0.7rem; display: flex; flex-direction: column; align-items: center; opacity: 0.6; }
+        .nav-btn.active { opacity: 1; color: var(--main-blue); font-weight: bold; }
+
+        .card { background: var(--card); border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .btn-action { background: var(--main-blue); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; width: 100%; }
+
+        /* Стили календаря */
+        .calendar-grid { display: grid; grid-template-cols: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day { padding: 10px 0; border-radius: 6px; font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.05); }
+        .day.holiday { color: #ef4444; font-weight: bold; }
+        .day.today { background: var(--main-blue); color: white; }
+    </style>
+</head>
+<body class="theme-classic">
+
+    <header class="p-4 flex justify-between items-center shadow-md bg-[var(--card)]">
+        <div class="flex items-center gap-2">
+            <div id="app-logo" style="width: 40px;"></div>
+            <h1 class="font-bold text-lg leading-tight">СИНЯЯ<br><span style="color:var(--main-blue)">ИЗОЛЕНТА</span></h1>
+        </div>
+        <button onclick="openSettings()" class="text-2xl">⚙️</button>
+    </header>
+
+    <main id="app-content">
+        <section id="page-calendar" class="page active">
+            <div class="card">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="month-title" class="text-xl font-bold">Февраль 2026</h2>
+                    <div class="flex gap-2">
+                        <button onclick="moveMonth(-1)">◀</button>
+                        <button onclick="moveMonth(1)">▶</button>
+                    </div>
+                </div>
+                <div class="calendar-grid mb-2 opacity-50 text-xs">
+                    <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span class="text-red-500">Сб</span><span class="text-red-500">Вс</span>
+                </div>
+                <div id="calendar-body" class="calendar-grid"></div>
+            </div>
+            <div class="card border-l-4 border-blue-600 italic text-sm" id="daily-quote">
+                "Всё, что может пойти не так, пойдет не так." (Закон Мёрфи)
+            </div>
+        </section>
+
+        <section id="page-chat" class="page">
+            <h2 class="text-xl font-bold mb-4">Групповой чат</h2>
+            <div id="chat-messages" class="card h-64 overflow-y-auto space-y-2 mb-4"></div>
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" class="flex-1 p-2 rounded border bg-[var(--card)]" placeholder="Текст...">
+                <button onclick="sendMessage()" class="p-2 bg-blue-600 text-white rounded">💾</button>
+            </div>
+        </section>
+
+        <section id="page-warehouse" class="page">
+            <h2 class="text-xl font-bold mb-4">Склад под верстаком</h2>
+            <div id="warehouse-list" class="space-y-3"></div>
+            <button onclick="addPart()" class="btn-action mt-4">+ Добавить деталь/инструмент</button>
+        </section>
+
+        <section id="page-handbook" class="page">
+            <h2 class="text-xl font-bold mb-4">Справочник резьб</h2>
+            <div class="card overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead><tr class="border-b"><th>Резьба</th><th>Шаг</th><th>Сверло</th></tr></thead>
+                    <tbody id="threads-table"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="page-dtc" class="page">
+            <h2 class="text-xl font-bold mb-4">Коды неисправностей</h2>
+            <input type="text" id="dtc-search" oninput="searchDTC()" class="w-full p-3 rounded-lg border mb-4" placeholder="Введите код (P0101)...">
+            <div id="dtc-results" class="space-y-2"></div>
+        </section>
+
+        <section id="page-ai" class="page">
+            <h2 class="text-xl font-bold mb-4">Инженерный AI</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <a href="https://gemini.google.com" target="_blank" class="card text-center py-6">Gemini</a>
+                <a href="https://canva.com" target="_blank" class="card text-center py-6">Canva</a>
+            </div>
+            <div class="card">
+                <h3 class="font-bold mb-2">Промт дня:</h3>
+                <p class="text-sm italic">"Проанализируй причины износа кулачков распредвала при использовании масла вязкостью..."</p>
+            </div>
+        </section>
+
+        <section id="page-humor" class="page">
+            <h2 class="text-xl font-bold mb-4">Юмор</h2>
+            <div id="joke-container" class="card text-lg italic text-center min-h-[100px] flex items-center justify-center">
+                Загрузка шутки...
+            </div>
+            <button onclick="loadJoke()" class="btn-action">Ещё анекдот</button>
+        </section>
+    </main>
+
+    <nav class="nav-bar">
+        <button onclick="showPage('calendar')" class="nav-btn active"><span>📅</span>Календарь</button>
+        <button onclick="showPage('chat')" class="nav-btn"><span>💬</span>Чат</button>
+        <button onclick="showPage('warehouse')" class="nav-btn"><span>📦</span>Склад</button>
+        <button onclick="showPage('handbook')" class="nav-btn"><span>⚙️</span>Справка</button>
+        <button onclick="showPage('dtc')" class="nav-btn"><span>⚠️</span>DTC</button>
+        <button onclick="showPage('ai')" class="nav-btn"><span>🤖</span>AI</button>
+        <button onclick="showPage('humor')" class="nav-btn"><span>😂</span>Юмор</button>
+    </nav>
+
+    <div id="modal-settings" class="fixed inset-0 bg-black/50 hidden z-[2000] p-6">
+        <div class="bg-[var(--card)] w-full max-w-sm mx-auto rounded-2xl p-6">
+            <h3 class="text-xl font-bold mb-4">Настройки</h3>
+            <p class="mb-2 text-sm">Цветовая тема:</p>
+            <div class="grid grid-cols-2 gap-2 mb-6">
+                <button onclick="setTheme('classic')" class="p-2 border rounded">Классика</button>
+                <button onclick="setTheme('dark')" class="p-2 bg-gray-900 text-white rounded">Темная</button>
+                <button onclick="setTheme('safety')" class="p-2 bg-yellow-400 text-black rounded">ТБ (Желтая)</button>
+                <button onclick="setTheme('garage')" class="p-2 bg-red-600 text-white rounded">Гараж</button>
+            </div>
+            <p class="mb-2 text-sm">Подключить устройство:</p>
+            <div id="qrcode" class="flex justify-center mb-4"></div>
+            <button onclick="closeSettings()" class="w-full p-2 bg-gray-200 rounded text-black font-bold">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. КОНФИГУРАЦИЯ FIREBASE (ЗАМЕНИТЕ НА ВАШИ КЛЮЧИ) --- */
+        const firebaseConfig = {
+            apiKey: "AIzaSyCim3CEHVjBta4cwxLUWG8BYXEfLobwXE4",
+  authDomain: "izolenta-695a7.firebaseapp.com",
+  databaseURL: "https://izolenta-695a7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "izolenta-695a7",
+  storageBucket: "izolenta-695a7.firebasestorage.app",
+  messagingSenderId: "450880685230",
+  appId: "1:450880685230:web:2ffd2b4758e35b0337193f",
+  measurementId: "G-BFMW0YSYFL"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        /* --- 2. ДАННЫЕ (ПРАЗДНИКИ, ЦИТАТЫ, РЕЗЬБЫ) --- */
+        const byHolidays = ["01-01", "01-07", "03-08", "05-01", "05-09", "07-03", "11-07", "12-25"];
+        const murphyQuotes = [
+            "Если деталь не лезет, возьми молоток побольше.",
+            "Не следует множить сущности без необходимости (Бритва Оккама).",
+            "Из двух решений выбирай самое простое.",
+            "Любой инструмент, упавший из рук, закатится в самый дальний угол."
+        ];
+        const threads = [
+            {n: "M6", s: "1.0", d: "5.0"}, {n: "M8", s: "1.25", d: "6.8"},
+            {n: "M10", s: "1.5", d: "8.5"}, {n: "1/4\" UNC", s: "20 TPI", d: "5.1"}
+        ];
+
+        /* --- 3. ЛОГИКА ПЕРЕКЛЮЧЕНИЯ СТРАНИЦ --- */
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        /* --- 4. КАЛЕНДАРЬ --- */
+        let currentDate = new Date();
+        function renderCalendar() {
+            const body = document.getElementById('calendar-body');
+            const title = document.getElementById('month-title');
+            body.innerHTML = '';
+            title.innerText = currentDate.toLocaleString('ru', { month: 'long', year: 'numeric' });
+            
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+            const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+            const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+            for(let i=0; i<offset; i++) body.innerHTML += '<div></div>';
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const isHoliday = byHolidays.includes(dateStr.slice(5));
+                const isToday = d === new Date().getDate() && currentDate.getMonth() === new Date().getMonth();
+                body.innerHTML += `<div class="day ${isHoliday?'holiday':''} ${isToday?'today':''}">${d}</div>`;
+            }
+            document.getElementById('daily-quote').innerText = murphyQuotes[Math.floor(Math.random()*murphyQuotes.length)];
+        }
+        function moveMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
+
+        /* --- 5. ЧАТ (REALTIME) --- */
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            if(input.value) {
+                db.ref('chat').push({ text: input.value, time: Date.now() });
+                input.value = '';
+            }
+        }
+        db.ref('chat').limitToLast(15).on('value', snap => {
+            const box = document.getElementById('chat-messages');
+            box.innerHTML = '';
+            snap.forEach(m => {
+                box.innerHTML += `<div class="p-2 bg-blue-500/10 rounded"><b>Механик:</b> ${m.val().text}</div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+
+        /* --- 6. НАСТРОЙКИ И ТЕМЫ --- */
+        function openSettings() { 
+            document.getElementById('modal-settings').classList.remove('hidden');
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 128, height: 128 });
+        }
+        function closeSettings() { document.getElementById('modal-settings').classList.add('hidden'); }
+        function setTheme(t) { 
+            document.body.className = 'theme-' + t; 
+            localStorage.setItem('izolenta-theme', t);
+        }
+
+        /* --- ИНИЦИАЛИЗАЦИЯ --- */
+        window.onload = () => {
+            document.getElementById('app-logo').innerHTML = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="var(--main-blue)"/><circle cx="50" cy="50" r="20" fill="white"/></svg>`;
+            renderCalendar();
+            setTheme(localStorage.getItem('izolenta-theme') || 'classic');
+            threads.forEach(t => {
+                document.getElementById('threads-table').innerHTML += `<tr class="border-b"><td>${t.n}</td><td>${t.s}</td><td class="font-bold">${t.d}</td></tr>`;
+            });
+        };
+    </script>
+</body>
+</html>
