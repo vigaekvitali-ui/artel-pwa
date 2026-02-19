@@ -3,64 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Инженерный хаб "СИНЯЯ ИЗОЛЕНТА"</title>
+    <title>Синяя Изолента v2.0</title>
     <style>
-        :root { --blue: #0038a8; --bg: #f3f4f6; --text: #1f2937; --white: #ffffff; }
-        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 70px; }
-        header { background: var(--blue); color: white; padding: 15px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 10px; }
-        .logo { background: white; color: var(--blue); padding: 5px 10px; border-radius: 4px; font-weight: bold; transform: rotate(-5deg); border: 2px solid #002673; }
+        :root { --blue: #0038a8; --dark: #1a202c; --bg: #f7fafc; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; }
         
-        .page { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
+        /* Шапка в стиле инженерного бокса */
+        header { background: var(--blue); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .logo-sq { background: white; color: var(--blue); padding: 5px; border-radius: 4px; font-weight: bold; border: 2px solid #002673; }
+
+        .page { display: none; padding: 15px; }
         .page.active { display: block; }
-        .card { background: var(--white); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 3px solid var(--blue); }
+
+        /* Карточки */
+        .card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 4px solid var(--blue); }
         
-        /* Таблицы справочников */
-        .scroll-x { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 400px; }
-        th { background: #e5e7eb; padding: 8px; text-align: left; border: 1px solid #ddd; }
-        td { padding: 8px; border: 1px solid #ddd; }
-        tr:nth-child(even) { background: #f9fafb; }
+        /* КАЛЕНДАРЬ СЕТКОЙ */
+        .cal-grid { display: grid; grid-template-cols: repeat(7, 1fr); gap: 2px; background: #cbd5e0; border: 1px solid #cbd5e0; }
+        .cal-cell { background: white; min-height: 50px; padding: 5px; font-size: 12px; position: relative; }
+        .cal-header { background: #edf2f7; font-weight: bold; text-align: center; padding: 5px 0; font-size: 11px; }
+        .today { background: #fff9c4; border: 2px solid var(--blue); font-weight: bold; }
+        .holiday { color: #e53e3e; }
 
-        /* Сетка календаря */
-        .cal-header { display: grid; grid-template-cols: repeat(7, 1fr); text-align: center; font-weight: bold; margin-bottom: 5px; font-size: 12px; }
-        .cal-grid { display: grid; grid-template-cols: repeat(7, 1fr); gap: 2px; background: #ddd; border: 1px solid #ddd; }
-        .cal-day { background: white; min-height: 45px; padding: 5px; font-size: 14px; position: relative; }
-        .cal-day.empty { background: #f1f1f1; }
-        .cal-day.today { background: #ffeb3b; font-weight: bold; border: 2px solid var(--blue); }
-        .cal-day.holiday { color: red; }
-        .holiday-name { font-size: 8px; display: block; color: red; margin-top: 2px; }
+        /* ТАБЛИЦЫ */
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th { background: #edf2f7; padding: 10px; text-align: left; border-bottom: 2px solid var(--blue); }
+        td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
 
-        /* Навигация */
+        /* НАВИГАЦИЯ */
         nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--blue); }
-        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #666; }
+        .nav-btn { border: none; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #718096; }
         .nav-btn.active { color: var(--blue); font-weight: bold; }
-        .nav-btn i { font-size: 20px; margin-bottom: 2px; font-style: normal; }
+        .nav-btn span { font-size: 20px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">Si</div>
-    <div><b>СИНЯЯ ИЗОЛЕНТА</b><br><small>Инженерный помощник</small></div>
+    <div class="logo-sq">Si</div>
+    <div><b>СИНЯЯ ИЗОЛЕНТА</b><br><small>v2.0 Инженерный календарь</small></div>
 </header>
 
-<section id="p1" class="page active">
+<div id="page1" class="page active">
     <div class="card">
-        <h2 id="cal-title" style="margin-top:0">Февраль 2026</h2>
-        <div class="cal-header">
-            <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span style="color:red">Сб</span><span style="color:red">Вс</span>
-        </div>
-        <div id="calendar" class="cal-grid"></div>
+        <h3 id="month-name">Февраль 2026</h3>
+        <div class="cal-grid" id="calendar">
+            <div class="cal-header">Пн</div><div class="cal-header">Вт</div><div class="cal-header">Ср</div>
+            <div class="cal-header">Чт</div><div class="cal-header">Пт</div><div class="cal-header" style="color:red">Сб</div><div class="cal-header" style="color:red">Вс</div>
+            </div>
     </div>
-    <div class="card" id="murphy-box" style="font-style: italic; font-size: 13px; color: #555;"></div>
-</section>
+    <div class="card" style="border-left: 4px solid #ecc94b; font-style: italic; font-size: 13px;">
+        <b>Закон Мёрфи:</b> "Если деталь не лезет — возьми молоток побольше."
+    </div>
+</div>
 
-<section id="p4" class="page">
-    <h2>⚙️ Метрическая резьба (основной шаг)</h2>
-    <div class="card scroll-x">
-        <table>
-            <thead><tr><th>Номинал</th><th>Шаг (P)</th><th>Сверло</th></tr></thead>
-            <tbody>
+<div id="page4" class="page">
+    <div class="card">
+        <h3>🔩 Метрическая резьба</h3>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Размер</th><th>Шаг</th><th>Сверло</th></tr>
                 <tr><td>M3</td><td>0.5</td><td>2.5 мм</td></tr>
                 <tr><td>M4</td><td>0.7</td><td>3.3 мм</td></tr>
                 <tr><td>M5</td><td>0.8</td><td>4.2 мм</td></tr>
@@ -68,103 +71,62 @@
                 <tr><td>M8</td><td>1.25</td><td>6.8 мм</td></tr>
                 <tr><td>M10</td><td>1.5</td><td>8.5 мм</td></tr>
                 <tr><td>M12</td><td>1.75</td><td>10.2 мм</td></tr>
-                <tr><td>M14</td><td>2.0</td><td>12.0 мм</td></tr>
-                <tr><td>M16</td><td>2.0</td><td>14.0 мм</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <h2>🔩 Дюймовая резьба (UNC)</h2>
-    <div class="card scroll-x">
-        <table>
-            <thead><tr><th>Размер</th><th>Ниток на дюйм</th><th>Сверло</th></tr></thead>
-            <tbody>
-                <tr><td>1/4"</td><td>20</td><td>5.1 мм</td></tr>
-                <tr><td>5/16"</td><td>18</td><td>6.6 мм</td></tr>
-                <tr><td>3/8"</td><td>16</td><td>8.0 мм</td></tr>
-                <tr><td>1/2"</td><td>13</td><td>10.8 мм</td></tr>
-            </tbody>
-        </table>
-    </div>
-</section>
-
-<section id="p5" class="page">
-    <h2>⚠️ Коды ошибок OBD-II</h2>
-    <div class="card">
-        <input type="text" id="dtc-search" placeholder="Поиск кода (напр. P0300)..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
-        <div id="dtc-list" style="margin-top:15px; font-size:14px;">
-            <p><b>P0101:</b> Датчик массового расхода воздуха (выход из диапазона)</p>
-            <p><b>P0171:</b> Слишком бедная смесь (Банк 1)</p>
-            <p><b>P0300:</b> Случайные пропуски зажигания</p>
-            <p><b>P0420:</b> Низкая эффективность катализатора</p>
-            <p><b>P0500:</b> Датчик скорости автомобиля (неисправность)</p>
+            </table>
         </div>
     </div>
-</section>
+    <div class="card">
+        <h3>🔵 Подшипники (Серия 200)</h3>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>№</th><th>d (внутр)</th><th>D (внеш)</th><th>B (шир)</th></tr>
+                <tr><td>201</td><td>12 мм</td><td>32 мм</td><td>10 мм</td></tr>
+                <tr><td>202</td><td>15 мм</td><td>35 мм</td><td>11 мм</td></tr>
+                <tr><td>203</td><td>17 мм</td><td>40 мм</td><td>12 мм</td></tr>
+                <tr><td>204</td><td>20 мм</td><td>47 мм</td><td>14 мм</td></tr>
+                <tr><td>205</td><td>25 мм</td><td>52 мм</td><td>15 мм</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
 
 <nav>
-    <button class="nav-btn active" onclick="showPage(1)"><i>📅</i>Кал.</button>
-    <button class="nav-btn" onclick="showPage(4)"><i>⚙️</i>Спр.</button>
-    <button class="nav-btn" onclick="showPage(5)"><i>⚠️</i>DTC</button>
-    <button class="nav-btn" onclick="alert('Чат в разработке...')"><i>💬</i>Чат</button>
+    <button class="nav-btn active" onclick="show(1)"><span>📅</span>Кал.</button>
+    <button class="nav-btn" onclick="show(4)"><span>⚙️</span>Спр.</button>
+    <button class="nav-btn" onclick="alert('Чат настраивается в Firebase...')"><span>💬</span>Чат</button>
 </nav>
 
 <script>
-    const holidays = {
-        "01-01": "Новый год", "01-07": "Рождество", "03-08": "8 Марта",
-        "05-01": "Праздник труда", "05-09": "День Победы", "07-03": "День Независимости", "11-07": "Окт. революция", "12-25": "Рождество (к)"
-    };
-
-    const quotes = [
-        "Если деталь не лезет, возьми молоток побольше. Если она сломалась — значит, ее всё равно нужно было менять.",
-        "Бритва Оккама: Не умножай сущности без необходимости. Самое простое решение — часто верное.",
-        "Закон Мёрфи: Всё, что может пойти не так, пойдет не так."
-    ];
-
-    function showPage(num) {
+    function show(num) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('p' + num).classList.add('active');
+        document.getElementById('page' + num).classList.add('active');
         event.currentTarget.classList.add('active');
     }
 
-    function renderCalendar() {
+    function buildCalendar() {
         const cal = document.getElementById('calendar');
         const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         
-        // Первый день месяца (Пн = 0, Вс = 6 для нашей сетки)
-        let firstDay = new Date(year, month, 1).getDay();
-        firstDay = firstDay === 0 ? 6 : firstDay - 1; 
+        // Сдвиг для Пн-Вс (в JS Вс=0)
+        let offset = firstDay === 0 ? 6 : firstDay - 1;
 
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
-        cal.innerHTML = '';
-
-        // Пустые ячейки в начале
-        for (let i = 0; i < firstDay; i++) {
-            cal.innerHTML += '<div class="cal-day empty"></div>';
+        for(let i=0; i<offset; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'cal-cell';
+            empty.style.background = '#f7fafc';
+            cal.appendChild(empty);
         }
 
-        // Дни месяца
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const holiday = holidays[dateStr];
-            const isToday = day === now.getDate() ? 'today' : '';
-            const isHoliday = holiday ? 'holiday' : '';
-            
-            cal.innerHTML += `
-                <div class="cal-day ${isToday} ${isHoliday}">
-                    ${day}
-                    ${holiday ? `<span class="holiday-name">${holiday}</span>` : ''}
-                </div>`;
+        for(let d=1; d<=daysInMonth; d++) {
+            const cell = document.createElement('div');
+            cell.className = 'cal-cell' + (d === now.getDate() ? ' today' : '');
+            cell.innerHTML = `<b>${d}</b>`;
+            cal.appendChild(cell);
         }
-        
-        document.getElementById('murphy-box').innerText = quotes[day % quotes.length];
     }
-
-    window.onload = renderCalendar;
+    buildCalendar();
 </script>
 </body>
 </html>
