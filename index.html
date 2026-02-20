@@ -4,163 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>АРТЕЛЬ ФОРДОВА И БЕНЦОВА</title>
-    <link rel="manifest" href="manifest.json">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        :root {
-            --blue-tape: #0047ab;
-            --galvanized: #bdc3c7;
-            --used-oil: #1a1a1a;
-            --rust: #8b4513;
-            --neon-in14: #ff5e00;
-        }
-        body { background: var(--used-oil); color: var(--galvanized); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 70px; }
-        .neon-glow { color: var(--neon-in14); text-shadow: 0 0 8px var(--neon-in14); }
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
-        .active { display: block; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--blue-tape); z-index: 100; }
-        .nav-item { color: var(--galvanized); cursor: pointer; }
-        .nav-item.active-nav { color: var(--blue-tape); }
-        .gost-card { border: 1px solid var(--blue-tape); padding: 10px; margin-bottom: 10px; background: rgba(0,71,171,0.1); }
-        input, button { background: #333; color: white; border: 1px solid var(--blue-tape); padding: 10px; }
-        /* Тумблер ПУСК */
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: var(--blue-tape); transition: .4s; }
-        input:checked + .slider { background-color: var(--neon-in14); }
-        input:checked + .slider:before { transform: translateX(26px); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        [x-cloak] { display: none !important; }
+        :root { --blue-tape: #0047ab; --neon-in14: #ff5e00; --galvanized: #bdc3c7; }
+        body { background: #1a1a1a; color: var(--galvanized); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 70px; }
+        .page { display: none; padding: 20px; }
+        .active { display: block !important; }
+        .gost-card { border: 1px solid var(--blue-tape); padding: 15px; margin-bottom: 10px; background: rgba(0,71,171,0.05); }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--blue-tape); }
+        .active-nav { color: var(--neon-in14) !important; }
+        .neon-text { color: var(--neon-in14); text-shadow: 0 0 5px var(--neon-in14); }
     </style>
 </head>
-<body x-data="artelCore" :class="theme">
+<body x-data="artelCore" x-cloak :class="theme">
 
-    <header style="text-align: center; border-bottom: 3px double var(--blue-tape); padding: 15px;">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
-            <i data-lucide="cog" class="neon-glow"></i>
-            <h1 style="font-size: 1.2rem; margin: 0;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</h1>
-            <i data-lucide="wrench" class="neon-glow"></i>
-        </div>
+    <header style="text-align: center; border-bottom: 2px solid var(--blue-tape); padding: 10px;">
+        <h2 style="margin: 0; font-size: 1.1rem;">🛠 АРТЕЛЬ ФОРДОВА И БЕНЦОВА</h2>
     </header>
 
-    <main :class="{ 'active': page === 1 }" class="page">
-        <section class="calendar-box gost-card">
-            <h4 x-text="currentHoliday" class="neon-glow"></h4>
-            <p x-text="dailyQuote" style="font-style: italic;"></p>
-        </section>
-
-        <h3 class="neon-glow">КОРПОРАТИВНЫЙ УСТАВ</h3>
-        <template x-for="zapoved in zapovedi">
-            <div class="gost-card" x-text="zapoved"></div>
+    <div :class="{ 'active': page === 1 }" class="page">
+        <div class="gost-card">
+            <div class="neon-text" x-text="currentHoliday"></div>
+            <div style="font-size: 0.8rem; font-style: italic;" x-text="dailyQuote"></div>
+        </div>
+        <h3 class="neon-text">УСТАВ "СИНЯЯ ИЗОЛЕНТА"</h3>
+        <template x-for="z in zapovedi">
+            <div class="gost-card" style="font-size: 0.9rem;" x-text="z"></div>
         </template>
-        
-        <h3 class="neon-glow">ТАБЕЛЬ О РАНГАХ</h3>
-        <div class="gost-card">1. Личинка инженера <br> 2. Подмастерье <br> 3. Мастер «Тяп-ляп» <br> 4. Конструктор Хаоса <br> 5. Мастодонт <br> 6. Гранд-мастер Синей Катушки</div>
-    </main>
+    </div>
 
-    <main :class="{ 'active': page === 2 }" class="page">
-        <h3 class="neon-glow">РАДИОРУБКА</h3>
-        <div id="chat-box" style="height: 300px; overflow-y: auto; border: 1px solid var(--blue-tape); padding: 10px; margin-bottom: 10px;">
+    <div :class="{ 'active': page === 2 }" class="page">
+        <h3 class="neon-text">РАДИОРУБКА</h3>
+        <div style="height: 300px; overflow-y: auto; border: 1px solid var(--blue-tape); padding: 10px; margin-bottom: 10px;">
             <template x-for="m in messages">
-                <div style="margin-bottom: 8px; border-left: 2px solid var(--blue-tape); padding-left: 5px;">
-                    <b x-text="m.username" style="color: var(--neon-in14);"></b>: <span x-text="m.text"></span>
+                <div style="margin-bottom: 5px; border-left: 2px solid var(--blue-tape); padding-left: 5px;">
+                    <b x-text="m.username" class="neon-text"></b>: <span x-text="m.text"></span>
                 </div>
             </template>
         </div>
-        <div style="display: flex; gap: 5px; align-items: center;">
-            <input type="text" x-model="msg" placeholder="Доклад..." style="flex: 1;">
-            <label class="switch">
-                <input type="checkbox" id="pusker" @change="if($el.checked) sendMsg()">
-                <span class="slider"></span>
-            </label>
-            <span style="font-size: 0.7rem;">ПУСК</span>
-        </div>
-    </main>
+        <input type="text" x-model="msg" @keyup.enter="sendMsg" placeholder="Доклад..." style="width: 80%; background: #000; color: #fff; border: 1px solid var(--blue-tape); padding: 10px;">
+        <button @click="sendMsg" style="background: var(--blue-tape); color: #fff; padding: 10px;">ПУСК</button>
+    </div>
 
-    <main :class="{ 'active': page === 3 }" class="page">
-        <h3 class="neon-glow">ЗАНАЧКА</h3>
-        <div class="gost-card"><b>Биржа Дефицита:</b> Обмен запчастями.</div>
-        <div class="gost-card"><b>Вредные советы:</b> Как затянуть ГБЦ без ключа.</div>
-        <div class="gost-card"><b>Архив:</b> Схемы на салфетках.</div>
-        <div class="gost-card"><b>Ящик НЗ:</b> Только для Мастодонтов.</div>
-    </main>
+    <div :class="{ 'active': page === 3 }" class="page">
+        <h3 class="neon-text">ЗАНАЧКА</h3>
+        <div class="gost-card">📦 Биржа Дефицита</div>
+        <div class="gost-card">💡 Вредные советы</div>
+        <div class="gost-card">📜 Чертежный архив</div>
+    </div>
 
-    <main :class="{ 'active': page === 4 }" class="page">
-        <h3 class="neon-glow">ТЕХНИЧЕСКИЙ СПРАВОЧНИК</h3>
+    <div :class="{ 'active': page === 4 }" class="page">
+        <h3 class="neon-text">ГОСТ ТАБЛИЦА (РЕЗЬБЫ)</h3>
         
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: center;">
-                <tr style="background: var(--blue-tape);"><th>M</th><th>Шаг</th><th>Сверло</th></tr>
-                <template x-for="r in rezba">
-                    <tr style="border-bottom: 1px solid #444;">
-                        <td x-text="r.m"></td><td x-text="r.s"></td><td x-text="r.d" class="neon-glow"></td>
-                    </tr>
-                </template>
-            </table>
-        </div>
-        <h3 class="neon-glow" style="margin-top: 20px;">ОШИБКИ OBD-II</h3>
-        <input type="text" x-model="obdQuery" placeholder="P0300" style="width: 100%;">
-        <p x-text="scanOBD()" style="color: var(--neon-in14); margin-top: 10px;"></p>
-    </main>
-
-    <main :class="{ 'active': page === 5 }" class="page">
-        <h3 class="neon-glow">НЕЙРО-ВЕРСТАК</h3>
-        <p style="font-size: 0.8rem; color: var(--rust);">* Для работы ИИ нужно установить VPN</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <a href="https://gemini.google.com" target="_blank" class="gost-card">Gemini</a>
-            <a href="https://canva.com" target="_blank" class="gost-card">Canva</a>
-            <a href="https://suno.com" target="_blank" class="gost-card">Suno</a>
-            <a href="#" class="gost-card">Бесплатный VPN</a>
-        </div>
-    </main>
-
-    <main :class="{ 'active': page === 6 }" class="page">
-        <h3 class="neon-glow">ИДЕИ ДЛЯ ПРОМТОВ</h3>
-        <div class="gost-card">"Нарисуй чертеж двигателя на дровах в стиле Леонардо да Винчи..."</div>
-        <button @click="location.reload()" style="width: 100%;">ОБНОВИТЬ ИДЕИ</button>
-    </main>
-
-    <main :class="{ 'active': page === 7 }" class="page">
-        <h3 class="neon-glow">ГАРАЖНЫЕ БАЙКИ</h3>
-        <div class="gost-card">
-            <p>— Почему машина не заводится? <br> — А ты изоленту синюю клеил? <br> — Нет. <br> — Вот и ответ.</p>
-        </div>
-        <button @click="location.reload()" style="width: 100%;">СЛЕДУЮЩИЙ АНЕКДОТ</button>
-    </main>
-
-    <main :class="{ 'active': page === 8 }" class="page">
-        <h3 class="neon-glow">НАСТРОЙКИ СТАНКА</h3>
-        <label>Цветовая схема:</label>
-        <select x-model="theme" @change="setTheme($el.value)" style="width: 100%; margin-bottom: 20px; background: #333; color: white;">
-            <template x-for="t in themes">
-                <option :value="t.val" x-text="t.name"></option>
+        <table style="width: 100%; border: 1px solid var(--blue-tape); text-align: center;">
+            <tr style="background: var(--blue-tape);"><th>M</th><th>Шаг</th><th>Сверло</th></tr>
+            <template x-for="r in rezba">
+                <tr><td x-text="r.m"></td><td x-text="r.s"></td><td x-text="r.d" class="neon-text"></td></tr>
             </template>
+        </table>
+        <h3 class="neon-text" style="margin-top:20px;">ОШИБКИ OBD-II</h3>
+        <input type="text" x-model="obdQuery" placeholder="P0300" style="width:100%; padding:10px; background:#000; border:1px solid var(--blue-tape); color:#fff;">
+        <div x-text="scanOBD()" style="margin-top:10px; color: var(--neon-in14);"></div>
+    </div>
+
+    <div :class="{ 'active': page === 5 }" class="page">
+        <h3 class="neon-text">ИИ-ВЕРСТАК</h3>
+        <p style="font-size: 0.7rem;">* Требуется VPN</p>
+        <div class="gost-card"><a href="https://gemini.google.com" style="color: #fff;">Gemini AI</a></div>
+        <div class="gost-card"><a href="https://suno.com" style="color: #fff;">Suno Music</a></div>
+    </div>
+
+    <div :class="{ 'active': page === 6 }" class="page">
+        <h3 class="neon-text">ГЕНЕРАТОР ИДЕЙ</h3>
+        <div class="gost-card" x-text="currentPrompt"></div>
+        <button @click="shufflePrompt" style="width:100%; padding:10px; background: var(--blue-tape); color:#fff;">ОБНОВИТЬ</button>
+    </div>
+
+    <div :class="{ 'active': page === 7 }" class="page">
+        <h3 class="neon-text">ГАРАЖНЫЙ ЮМОР</h3>
+        <div class="gost-card" x-text="currentJoke"></div>
+        <button @click="shuffleJoke" style="width:100%; padding:10px; background: var(--blue-tape); color:#fff;">ЕЩЕ!</button>
+    </div>
+
+    <div :class="{ 'active': page === 8 }" class="page">
+        <h3 class="neon-text">НАСТРОЙКИ</h3>
+        <label>Тема оформления:</label>
+        <select x-model="theme" @change="setTheme($el.value)" style="width:100%; padding:10px; background:#000; color:#fff;">
+            <option value="theme-classic">Синяя изолента</option>
+            <option value="theme-oil">Отработанное масло</option>
+            <option value="theme-rust">Ржавое железо</option>
         </select>
-        <div id="qrcode" style="display: flex; justify-content: center; background: white; padding: 10px; margin-bottom: 10px;"></div>
-        <p style="text-align: center; font-size: 0.7rem;">QR для подключения напарника</p>
-    </main>
+        <div id="qrcode" style="margin-top: 20px; display: flex; justify-content: center; background: #fff; padding: 10px;"></div>
+    </div>
 
     <nav class="nav-bar">
         <template x-for="(icon, index) in navIcons">
-            <div class="nav-item" :class="{ 'active-nav': page === (index + 1) }" @click="page = (index + 1)">
+            <div class="nav-item" :class="{ 'active-nav': page === (index + 1) }" @click="page = (index + 1); setTimeout(() => lucide.createIcons(), 50)">
                 <i :data-lucide="icon"></i>
             </div>
         </template>
     </nav>
 
     <script src="js/app.js"></script>
-    <script>
-        // Инициализация иконок после смены страниц Alpine
-        document.addEventListener('alpine:init', () => {
-            Alpine.effect(() => {
-                const p = Alpine.store('artelCore')?.page;
-                setTimeout(() => lucide.createIcons(), 10);
-            });
-        });
-    </script>
 </body>
 </html>
