@@ -4,24 +4,69 @@ document.addEventListener('alpine:init', () => {
         theme: localStorage.getItem('artel-theme') || '',
         showSettings: false,
         currentDate: new Date(),
-        obdCode: '',
-        stockFilter: 'У меня есть',
-        refType: 'metric',
         
-        tabs: [
-            {id: 'cal', title: 'Даты', icon: 'calendar'},
-            {id: 'chat', title: 'Чат', icon: 'message-circle'},
-            {id: 'stock', title: 'Склад', icon: 'package'},
-            {id: 'ref', title: 'Инфо', icon: 'book-open'},
-            {id: 'obd', title: 'OBD', icon: 'activity'},
-            {id: 'ai', title: 'AI', icon: 'cpu'},
-            {id: 'joke', title: 'Юмор', icon: 'laugh'}
-        ],
-
-        // --- Календарь ---
-        get monthLabel() {
-            return new Intl.DateTimeFormat('ru-RU', {month:'long', year:'numeric'}).format(this.currentDate);
+        // --- ЧАТ ---
+        newMessage: '',
+        messages: JSON.parse(localStorage.getItem('artel-chat') || '[{"text": "Добро пожаловать в чат АРТЕЛЬ!", "self": false, "time": "12:00"}]'),
+        
+        sendMessage() {
+            if (this.newMessage.trim() === '') return;
+            this.messages.push({
+                text: this.newMessage,
+                self: true,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            });
+            this.newMessage = '';
+            localStorage.setItem('artel-chat', JSON.stringify(this.messages));
+            // Прокрутка вниз
+            setTimeout(() => { const c = document.getElementById('chat-container'); c.scrollTop = c.scrollHeight; }, 50);
         },
+
+        // --- СКЛАД ---
+        stockFilter: 'У меня есть',
+        newItemName: '',
+        inventory: JSON.parse(localStorage.getItem('artel-stock') || '[]'),
+        
+        addItem() {
+            if (this.newItemName.trim() === '') return;
+            this.inventory.push({
+                name: this.newItemName,
+                details: 'Добавлено вручную',
+                cat: this.stockFilter
+            });
+            this.newItemName = '';
+            localStorage.setItem('artel-stock', JSON.stringify(this.inventory));
+        },
+
+        // --- OBD-II КОДЫ (Исправленный поиск) ---
+        obdCode: '',
+        obdDatabase: {
+            "P0101": "ДМРВ: Выход сигнала из диапазона. Проверь герметичность впуска.",
+            "P0300": "Множественные пропуски зажигания. Смотри свечи и катушки.",
+            "P0500": "Датчик скорости автомобиля: нет сигнала.",
+            "520204": "МТЗ: Низкое давление в системе смазки КПП (проверь фильтр).",
+            "523450": "John Deere: Нарушение связи CAN-шины двигателя.",
+            "E12": "Трактор: Ошибка датчика положения навески."
+        },
+        searchOBD() {
+            const code = this.obdCode.trim().toUpperCase();
+            return this.obdDatabase[code] || "Код не найден в базе. Попробуй Gemini AI.";
+        },
+
+        // --- ЮМОР (Смена анекдотов) ---
+        jokes: [
+            {text: "Инженер — это человек, который может объяснить, почему сломалось то, что по его расчетам сломаться не могло.", rating: 42},
+            {text: "Синяя изолента — это не просто расходник, это фундаментальная константа мироздания.", rating: 89},
+            {text: "Почему механики не любят левшей? У них резьба в голове в другую сторону.", rating: 15},
+            {text: "— У вас трактор сломался. — Как узнали? — Он не дымит и не вибрирует.", rating: 56}
+        ],
+        currentJokeIndex: 0,
+        nextJoke() {
+            this.currentJokeIndex = (this.currentJokeIndex + 1) % this.jokes.length;
+        },
+
+        // --- КАЛЕНДАРЬ (Алгоритм без изменений) ---
+        get monthLabel() { return new Intl.DateTimeFormat('ru-RU', {month:'long', year:'numeric'}).format(this.currentDate); },
         get daysInMonth() {
             let d = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0).getDate();
             return Array.from({length: d}, (_, i) => i + 1);
@@ -34,75 +79,17 @@ document.addEventListener('alpine:init', () => {
             this.currentDate.setMonth(this.currentDate.getMonth() + step);
             this.currentDate = new Date(this.currentDate);
         },
-        getDayClass(day) {
-            const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-            const isToday = new Date().toDateString() === date.toDateString();
-            const dayOfWeek = date.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-            const dateStr = `${String(date.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            const isHoliday = ['01-01','01-07','03-08','05-01','05-09','07-03','11-07','12-25'].includes(dateStr);
 
-            if (isToday) return 'bg-blue-600 text-white font-bold shadow-lg';
-            if (isHoliday || isWeekend) return 'text-red-500 font-bold bg-red-50';
-            return 'opacity-80';
-        },
-
-        // --- Справочники ---
+        // --- СПРАВОЧНИКИ ---
+        refType: 'metric',
         getRefData() {
             const db = {
-                metric: [
-                    {s:"M6", p:"1.0", d:"5.0"}, {s:"M8", p:"1.25", d:"6.8"}, 
-                    {s:"M10", p:"1.5", d:"8.5"}, {s:"M12", p:"1.75", d:"10.2"},
-                    {s:"M16", p:"2.0", d:"14.0"}, {s:"M20", p:"2.5", d:"17.5"}
-                ],
-                inch: [
-                    {s:"1/4 UNC", p:"20", d:"5.1"}, {s:"5/16 UNC", p:"18", d:"6.6"},
-                    {s:"3/8 UNC", p:"16", d:"8.0"}, {s:"1/2 UNF", p:"20", d:"11.5"}
-                ],
-                bearings: [
-                    {n:"6204", d:"20", D:"47", B:"14"}, {n:"6205", d:"25", D:"52", B:"15"},
-                    {n:"6206", d:"30", D:"62", B:"16"}, {n:"6308", d:"40", D:"90", B:"23"}
-                ],
-                seals: [
-                    {t:"TC", s:"25x47x7", a:"Ступица перед."}, {t:"TC", s:"30x52x10", a:"Коленвал (перед)"},
-                    {t:"SC", s:"40x60x7", a:"Редуктор"}, {t:"TC", s:"80x105x12", a:"Задний мост МТЗ"}
-                ]
+                metric: [{s:"M6", p:"1.0", d:"5.0"}, {s:"M8", p:"1.25", d:"6.8"}, {s:"M10", p:"1.5", d:"8.5"}],
+                inch: [{s:"1/4 UNC", p:"20", d:"5.1"}, {s:"1/2 UNF", p:"20", d:"11.5"}],
+                bearings: [{n:"6204", d:"20", D:"47", B:"14"}, {n:"6308", d:"40", D:"90", B:"23"}],
+                seals: [{t:"TC", s:"25x47x7", a:"Ступица"}, {t:"TC", s:"80x105x12", a:"Мост МТЗ"}]
             };
             return db[this.refType] || [];
-        },
-
-        // --- OBD ---
-        searchOBD() {
-            const codes = {
-                "P0101": "ДМРВ: Неверный диапазон сигнала. Проверь патрубки!",
-                "P0300": "Случайные пропуски зажигания. Смотри свечи/катушки.",
-                "P0420": "Низкая эффективность катализатора.",
-                "520204": "МТЗ: Ошибка датчика давления масла КПП.",
-                "523450": "John Deere: Нарушение связи CAN-шины двигателя.",
-                "E12": "Трактор: Ошибка датчика положения навески."
-            };
-            return codes[this.obdCode.toUpperCase()] || "Код не найден. Попробуй поиск через AI раздел.";
-        },
-
-        // --- Контент ---
-        dailyQuote: "Если кажется, что всё хорошо, значит, вы чего-то не заметили. (Закон Мерфи)",
-        inventory: [
-            {name: "Динамометрический ключ", details: "10-110 Нм, KingTony", cat: "У меня есть"},
-            {name: "Набор экстракторов", details: "M3-M18", cat: "Могу поделиться"},
-            {name: "Масло 10W-40 (5л)", details: "Нужно для ТО", cat: "Мне нужно"}
-        ],
-        jokes: [
-            {text: "Инженер — это человек, который может объяснить, почему сломалось то, что по его расчетам сломаться не могло.", rating: 42},
-            {text: "— Почему ты всегда используешь синюю изоленту? — Потому что на ней держится мир. Черная — это просто декор.", rating: 89}
-        ],
-
-        // --- Жесты (Свайпы) ---
-        touchStartX: 0,
-        handleTouchStart(e) { this.touchStartX = e.changedTouches[0].screenX; },
-        handleTouchEnd(e) {
-            const endX = e.changedTouches[0].screenX;
-            if (this.touchStartX - endX > 80) this.changeMonth(1);
-            if (endX - this.touchStartX > 80) this.changeMonth(-1);
         },
 
         init() {
