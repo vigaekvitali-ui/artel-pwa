@@ -1,0 +1,83 @@
+:root {
+    --blue-tape: #0047ab; /* Синяя изолента */
+    --galvanized: #b8c2c9; /* Оцинковка */
+    --used-oil: #1a1a1a; /* Отработка */
+    --rusty: #8b4513; /* Ржавчина */
+    --nixie-neon: #ff8c00; /* Неон ИН-14 */
+}
+
+body {
+    background-color: var(--used-oil);
+    color: var(--galvanized);
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    height: 100vh;
+}
+
+header {
+    grid-column: 1 / -1;
+    background: linear-gradient(180deg, #333, #1a1a1a);
+    border-bottom: 4px solid var(--blue-tape);
+    padding: 10px;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 5px;
+    padding-top: 10px;
+}
+
+button {
+    background: var(--galvanized);
+    border: 2px solid #555;
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Кнопка ПУСК (Тумблер) */
+.btn-launch {
+    background: #444;
+    border: 4px inset #222;
+    color: var(--nixie-neon);
+    padding: 15px 30px;
+    font-size: 1.2rem;
+}
+
+/* Кнопка ГОСТно */
+.btn-gost {
+    background: none;
+    border: 2px solid var(--rusty);
+    color: var(--galvanized);
+}
+.btn-gost:before { content: "👍 (в мазуте) "; }
+
+/* Лампа ИН-14 */
+#nixie-tube {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 50px;
+    border-radius: 10px 10px 0 0;
+    background: rgba(255, 140, 0, 0.1);
+    box-shadow: 0 0 15px var(--nixie-neon);
+    z-index: 1000;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    body { grid-template-columns: 1fr; }
+    aside { display: none; }
+}
