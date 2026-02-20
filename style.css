@@ -1,26 +1,22 @@
 :root {
-  --blue-tape: #0047ab; /* Синяя изолента */
-  --galvanized-steel: #bdc3c7; /* Оцинкованная сталь */
-  --used-oil: #1a1a1a; /* Отработанное масло */
-  --rusty-iron: #8b4513; /* Ржавое железо */
-  --neon-orange: #ff5e00; /* Индикатор ИН-14 */
+    --blue-tape: #0047AB;
+    --galvanized-steel: #BDC3C7;
+    --used-oil: #1A1A1A;
+    --rusty-iron: #8B4513;
+    --neon-orange: #FF5E00;
 }
 
-/* Стилизация кнопки ПУСК (Тумблер) */
-.toggle-launch {
-  appearance: none;
-  width: 60px;
-  height: 30px;
-  background: var(--used-oil);
-  border: 2px solid var(--blue-tape);
-  position: relative;
-  cursor: pointer;
+/* Темы */
+.theme-neon { --main-bg: #000; --accent: var(--neon-orange); }
+.theme-rust { --main-bg: #2b1100; --accent: var(--rusty-iron); }
+
+/* Стилизация 404 (создай файл 404.html в корне) */
+.glass-broken {
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
 }
 
-.toggle-launch:checked::before {
-  content: 'ПУСК';
-  color: var(--neon-orange);
-  text-shadow: 0 0 5px var(--neon-orange);
-  position: absolute;
-  left: 35px;
+/* Эффект свечения лампы ИН-14 */
+.neon-text {
+    color: var(--neon-orange);
+    text-shadow: 0 0 5px var(--neon-orange), 0 0 10px var(--neon-orange);
 }
