@@ -2,297 +2,140 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="manifest" href="manifest.json">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Синяя Изолента | Артель Фордова и Бенцова</title>
-    
-    <meta name="theme-color" content="#0047AB">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инженерная Панель | СИНЯЯ ИЗОЛЕНТА</title>
     <style>
-        /* --- СИСТЕМА ТЕМ --- */
-        :root {
-            /* Тема: Синяя Изолента (Classic) */
-            --primary: #0047AB; --secondary: #C0C0C0; --bg: #f4f4f4;
-            --surface: #ffffff; --text: #333333; --nixie: #ff5500;
-        }
+        :root { --p: #0047AB; --bg: #f0f2f5; --card: #ffffff; --text: #1c1e21; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        
+        header { background: var(--p); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        nav { display: flex; overflow-x: auto; background: white; border-bottom: 1px solid #ddd; sticky: top; }
+        .nav-link { padding: 15px; text-decoration: none; color: #666; font-weight: bold; white-space: nowrap; cursor: pointer; }
+        .nav-link.active { color: var(--p); border-bottom: 3px solid var(--p); }
 
-        [data-theme="dark"] {
-            --primary: #0047AB; --secondary: #2d2d2d; --bg: #1a1a1a;
-            --surface: #262626; --text: #f5f5f5;
-        }
+        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        .page { display: none; }
+        .page.active { display: block; }
 
-        [data-theme="rust"] {
-            --primary: #b7410e; --secondary: #8b4513; --bg: #2d1b0f;
-            --surface: #3d2b1f; --text: #ffd700;
-        }
+        .card { background: var(--card); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        /* Сетка календаря */
+        .cal-grid { display: grid; grid-template-cols: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day { padding: 10px 5px; background: #eee; border-radius: 4px; font-size: 14px; }
+        .day.today { background: var(--p); color: white; font-weight: bold; }
+        .day.sun { color: red; }
 
-        [data-theme="chrome"] {
-            --primary: #404040; --secondary: #808080; --bg: #c0c0c0;
-            --surface: #e0e0e0; --text: #000000;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
+        th { background: #f8f9fa; }
 
-        /* --- ГЛОБАЛЬНЫЕ СТИЛИ --- */
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0; background-color: var(--bg); color: var(--text);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none; -webkit-tap-highlight-color: transparent;
-        }
-
-        header {
-            background: var(--primary); color: white;
-            padding: 10px 15px; display: flex; align-items: center;
-            justify-content: space-between; position: sticky; top: 0; z-index: 1000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        .nixie-lamp {
-            width: 20px; height: 20px; background: var(--nixie);
-            border-radius: 50%; box-shadow: 0 0 15px var(--nixie);
-            display: inline-block; animation: flicker 2s infinite;
-        }
-
-        @keyframes flicker {
-            0%, 100% { opacity: 1; } 50% { opacity: 0.6; }
-            52% { opacity: 0.9; } 54% { opacity: 0.4; }
-        }
-
-        /* --- СЕТКА И СТРАНИЦЫ --- */
-        main { padding: 15px; padding-bottom: 90px; }
-        .page { display: none; max-width: 800px; margin: 0 auto; }
-        .page.active { display: block; animation: slideUp 0.4s ease-out; }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .card {
-            background: var(--surface); border-radius: 12px;
-            padding: 15px; margin-bottom: 15px;
-            box-shadow: 4px 4px 0px var(--secondary);
-            border: 2px solid var(--secondary);
-        }
-
-        /* --- КАЛЕНДАРЬ --- */
-        .calendar-grid {
-            display: grid; grid-template-cols: repeat(7, 1fr);
-            gap: 5px; text-align: center;
-        }
-        .cal-day {
-            aspect-ratio: 1/1; display: flex; align-items: center;
-            justify-content: center; background: var(--bg);
-            border-radius: 6px; font-weight: bold; font-size: 0.9em;
-            position: relative; cursor: pointer;
-        }
-        .cal-day.today { background: var(--primary); color: white; }
-        .cal-day.holiday { color: #ff4444; }
-        .cal-day::after {
-            content: ''; position: absolute; bottom: 4px;
-            width: 4px; height: 4px; background: var(--primary);
-            border-radius: 50%; display: none;
-        }
-        .cal-day.has-note::after { display: block; }
-
-        /* --- КНОПКИ --- */
-        .btn-пуск {
-            background: var(--primary); color: white;
-            border: none; padding: 12px 24px; border-radius: 8px;
-            font-weight: bold; text-transform: uppercase;
-            cursor: pointer; width: 100%; box-shadow: 0 4px 0 #002d6d;
-        }
-        .btn-пуск:active { transform: translateY(2px); box-shadow: 0 2px 0 #002d6d; }
-
-        .btn-гостно {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: var(--secondary); padding: 8px 12px;
-            border-radius: 20px; font-size: 0.8em; cursor: pointer;
-        }
-
-        /* --- НАВИГАЦИЯ --- */
-        nav {
-            position: fixed; bottom: 0; width: 100%;
-            background: var(--surface); display: flex;
-            justify-content: space-around; padding: 10px 0;
-            border-top: 3px solid var(--primary); z-index: 1001;
-        }
-        .nav-item {
-            font-size: 1.5em; color: var(--text); opacity: 0.5;
-            transition: 0.3s; cursor: pointer;
-        }
-        .nav-item.active { opacity: 1; color: var(--primary); transform: scale(1.2); }
-
-        /* --- ТАБЛИЦЫ --- */
-        .ref-table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-        .ref-table th { background: var(--primary); color: white; padding: 8px; text-align: left; }
-        .ref-table td { border-bottom: 1px solid var(--secondary); padding: 8px; }
-
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .btn { background: var(--p); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body data-theme="classic">
+<body>
 
 <header>
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <svg id="logo" width="40" height="40" viewBox="0 0 100 100">
-            <rect x="10" y="35" width="80" height="30" fill="white" rx="4" transform="rotate(-15 50 50)"/>
-            <path d="M10 50 Q50 20 90 50" stroke="white" stroke-width="8" fill="none" opacity="0.5"/>
-            <text x="50" y="58" font-family="Arial Black" font-size="20" fill="#0047AB" text-anchor="middle" transform="rotate(-15 50 50)">Si</text>
-        </svg>
-        <span style="font-weight: 900; letter-spacing: 1px;">АРТЕЛЬ</span>
-    </div>
-    <div>
-        <span class="nixie-lamp" id="notif-lamp"></span>
-    </div>
+    <div style="font-weight: bold;">СИНЯЯ ИЗОЛЕНТА v3.0</div>
+    <div id="nixie" style="color: #ffaa00; font-family: monospace; font-weight: bold; text-shadow: 0 0 5px #ffaa00;">ИН-14: OK</div>
 </header>
 
-<main>
-    <section id="page-1" class="page active">
-        <div class="card">
-            <h2 id="cal-month-name">Февраль 2026</h2>
-            <div class="calendar-grid" id="calendar-body">
-                </div>
-        </div>
-        <div class="card" style="border-left: 5px solid var(--primary);">
-            <small id="quote-type">ЗАКОН МЕРФИ:</small>
-            <p id="daily-quote" style="font-style: italic; margin-top: 5px;"></p>
-        </div>
-    </section>
-
-    <section id="page-2" class="page">
-        <div class="card" id="chat-box" style="height: 60vh; overflow-y: auto;">
-            </div>
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <input type="text" id="chat-input" placeholder="Пиши по делу..." style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid var(--secondary);">
-            <button class="btn-пуск" id="send-btn" style="width: auto;">ПУСК</button>
-        </div>
-    </section>
-
-    <section id="page-4" class="page">
-        <div class="card">
-            <h3>🔩 Резьба (Метрическая)</h3>
-            <table class="ref-table">
-                <tr><th>Размер</th><th>Шаг</th><th>Сверло</th></tr>
-                <tr><td>M6</td><td>1.0</td><td>5.0</td></tr>
-                <tr><td>M8</td><td>1.25</td><td>6.8</td></tr>
-                <tr><td>M10</td><td>1.5</td><td>8.5</td></tr>
-                <tr><td>M12</td><td>1.75</td><td>10.2</td></tr>
-            </table>
-        </div>
-        <div class="card">
-            <h3>🔵 Подшипники (Серия 200)</h3>
-            <table class="ref-table">
-                <tr><th>№</th><th>d (мм)</th><th>D (мм)</th><th>B (мм)</th></tr>
-                <tr><td>201</td><td>12</td><td>32</td><td>10</td></tr>
-                <tr><td>204</td><td>20</td><td>47</td><td>14</td></tr>
-                <tr><td>205</td><td>25</td><td>52</td><td>15</td></tr>
-            </table>
-        </div>
-    </section>
-
-    <section id="page-8" class="page">
-        <div class="card">
-            <h3>ЦВЕТОВАЯ СХЕМА</h3>
-            <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 10px;">
-                <button onclick="setTheme('classic')" class="btn-пуск" style="background:#0047AB">ИЗОЛЕНТА</button>
-                <button onclick="setTheme('dark')" class="btn-пуск" style="background:#1a1a1a">НОЧЬ</button>
-                <button onclick="setTheme('rust')" class="btn-пуск" style="background:#b7410e">РЖАВЧИНА</button>
-                <button onclick="setTheme('chrome')" class="btn-пуск" style="background:#808080">ХРОМ</button>
-            </div>
-        </div>
-        <div class="card">
-            <h3>ПОДКЛЮЧИТЬ УСТРОЙСТВО</h3>
-            <div id="qrcode" style="display: flex; justify-content: center; padding: 10px;"></div>
-            <p style="text-align: center; font-size: 0.8em;">ID Твоей Артели: <b id="artel-id-display">---</b></p>
-        </div>
-    </section>
-</main>
-
-<nav>
-    <div class="nav-item active" onclick="showPage(1)">📅</div>
-    <div class="nav-item" onclick="showPage(2)">💬</div>
-    <div class="nav-item" onclick="showPage(3)">📦</div>
-    <div class="nav-item" onclick="showPage(4)">⚙️</div>
-    <div class="nav-item" onclick="showPage(8)">🛠</div>
+<nav id="main-nav">
+    <div class="nav-link active" onclick="show('cal')">КАЛЕНДАРЬ</div>
+    <div class="nav-link" onclick="show('ref')">СПРАВОЧНИК</div>
+    <div class="nav-link" onclick="show('stock')">СКЛАД</div>
+    <div class="nav-link" onclick="show('dtc')">ОШИБКИ</div>
 </nav>
 
+<div class="container">
+    <section id="cal" class="page active">
+        <div class="card">
+            <h3 id="m-title">Февраль 2026</h3>
+            <div class="cal-grid" id="cal-body"></div>
+        </div>
+        <div class="card" style="border-left: 5px solid #ffaa00;">
+            <small><b>СОВЕТ ДНЯ:</b></small>
+            <p id="quote">Загрузка...</p>
+        </div>
+    </section>
+
+    <section id="ref" class="page">
+        <div class="card">
+            <h3>🔩 Метрическая резьба</h3>
+            <table>
+                <tr><th>Резьба</th><th>Шаг</th><th>Сверло</th></tr>
+                <tr><td>M6</td><td>1.0</td><td>5.0 мм</td></tr>
+                <tr><td>M8</td><td>1.25</td><td>6.8 мм</td></tr>
+                <tr><td>M10</td><td>1.5</td><td>8.5 мм</td></tr>
+                <tr><td>M12</td><td>1.75</td><td>10.2 мм</td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <h3>🔵 Подшипники</h3>
+            <table>
+                <tr><th>№</th><th>внутр.</th><th>внеш.</th><th>ширина</th></tr>
+                <tr><td>203</td><td>17 мм</td><td>40 мм</td><td>12 мм</td></tr>
+                <tr><td>205</td><td>25 мм</td><td>52 мм</td><td>15 мм</td></tr>
+            </table>
+        </div>
+    </section>
+
+    <section id="stock" class="page">
+        <div class="card">
+            <h3>📦 Склад под верстаком</h3>
+            <textarea id="stock-data" rows="10" placeholder="Впиши сюда запчасти, которые лежат в заначке..."></textarea>
+            <button class="btn" onclick="saveStock()">СОХРАНИТЬ (ПУСК)</button>
+        </div>
+    </section>
+
+    <section id="dtc" class="page">
+        <div class="card">
+            <h3>⚠️ Поиск кодов DTC</h3>
+            <input type="text" id="dtc-in" placeholder="Введите код (например, P0300)..." oninput="findDTC()">
+            <div id="dtc-out" style="margin-top: 10px; font-weight: bold; color: #d32f2f;"></div>
+        </div>
+    </section>
+</div>
+
 <script>
-    // --- ДАННЫЕ И БАЗЫ ---
-    const holidaysBY = {
-        "01-01": "Новый Год", "01-07": "Рождество", "03-08": "8 Марта",
-        "05-01": "Праздник Труда", "05-09": "День Победы", "07-03": "День Независимости",
-        "11-07": "Окт. Революция", "12-25": "Рождество (К)"
-    };
+    const dtcMap = {"P0101":"Датчик массового расхода воздуха","P0300":"Пропуски зажигания","P0171":"Слишком бедная смесь","P0420":"Эффективность катализатора ниже порога"};
+    const quotes = ["Если не держит — значит мало изоленты.", "Лишняя деталь — это запасная часть.", "ТБ — не догма, а рекомендация.", "Работает? Не лезь!"];
 
-    const murphyQuotes = [
-        "Если деталь не лезет — возьми молоток побольше.",
-        "Всё, что может пойти не так, пойдет не так.",
-        "Из двух решений выбирай самое простое (Оккам).",
-        "Чистые руки — признак того, что ты ничего не делал.",
-        "Лишняя деталь — это запасная деталь."
-    ];
-
-    // --- ЛОГИКА КАЛЕНДАРЯ ---
-    function initCalendar() {
-        const body = document.getElementById('calendar-body');
-        const now = new Date();
-        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        
-        body.innerHTML = '';
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dateStr = `${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-            const isHoliday = holidaysBY[dateStr];
-            const isToday = i === now.getDate();
-            
-            const dayEl = document.createElement('div');
-            dayEl.className = `cal-day ${isToday ? 'today' : ''} ${isHoliday ? 'holiday' : ''}`;
-            dayEl.innerText = i;
-            if (isHoliday) dayEl.title = isHoliday;
-            body.appendChild(dayEl);
-        }
-        document.getElementById('daily-quote').innerText = murphyQuotes[Math.floor(Math.random() * murphyQuotes.length)];
-    }
-
-    // --- СИСТЕМА СИНХРОНИЗАЦИИ (MOCK/Firebase) ---
-    // В реальном проекте здесь инициализируется Firebase
-    let artelID = localStorage.getItem('artel_id') || Math.random().toString(36).substring(7);
-    localStorage.setItem('artel_id', artelID);
-    document.getElementById('artel-id-display').innerText = artelID.toUpperCase();
-
-    new QRCode(document.getElementById("qrcode"), {
-        text: window.location.href + "?join=" + artelID,
-        width: 128, height: 128
-    });
-
-    // --- ИНТЕРФЕЙС ---
-    function showPage(n) {
+    function show(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById(`page-${n}`).classList.add('active');
-        document.querySelectorAll('.nav-item')[n-1 === 7 ? 4 : n-1].classList.add('active');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.currentTarget.classList.add('active');
     }
 
-    function setTheme(t) {
-        document.body.setAttribute('data-theme', t);
-        localStorage.setItem('theme', t);
+    function renderCal() {
+        const body = document.getElementById('cal-body');
+        const now = new Date();
+        const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        body.innerHTML = '';
+        for(let i=1; i<=days; i++) {
+            const isToday = i === now.getDate();
+            body.innerHTML += `<div class="day ${isToday?'today':''}">${i}</div>`;
+        }
+        document.getElementById('quote').innerText = quotes[Math.floor(Math.random()*quotes.length)];
     }
 
-    // Офлайн режим
-    window.addEventListener('online', () => document.getElementById('notif-lamp').style.background = 'var(--nixie)');
-    window.addEventListener('offline', () => document.getElementById('notif-lamp').style.background = '#333');
+    function findDTC() {
+        const val = document.getElementById('dtc-in').value.toUpperCase();
+        document.getElementById('dtc-out').innerText = dtcMap[val] || (val.length > 3 ? "Код не найден в базе" : "");
+    }
 
-    // Инициализация
+    function saveStock() {
+        localStorage.setItem('artel_stock', document.getElementById('stock-data').value);
+        alert('Данные сохранены в памяти браузера!');
+    }
+
     window.onload = () => {
-        initCalendar();
-        setTheme(localStorage.getItem('theme') || 'classic');
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        renderCal();
+        document.getElementById('stock-data').value = localStorage.getItem('artel_stock') || '';
     };
 </script>
+
 </body>
 </html>
-
