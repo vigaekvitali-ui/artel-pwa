@@ -2,57 +2,161 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>АРТЕЛЬ ФОРДОВА И БЕНЦОВА</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <style>
+        :root {
+            --blue-tape: #0047ab;
+            --steel: #b8c2c9;
+            --oil: #1a1a1a;
+            --rust: #8b4513;
+            --nixie: #ff8c00;
+        }
+
+        body {
+            background-color: var(--oil);
+            color: var(--steel);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Стиль "Инженерная Изолента" */
+        header {
+            border-bottom: 5px solid var(--blue-tape);
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(to bottom, #333, var(--oil));
+        }
+
+        .nixie-lamp {
+            display: inline-block;
+            color: var(--nixie);
+            text-shadow: 0 0 10px var(--nixie);
+            border: 1px solid rgba(255,140,0,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            background: #222;
+            padding: 10px;
+        }
+
+        .btn-toggle {
+            background: var(--steel);
+            border: 3px outset #888;
+            color: #000;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .btn-toggle:active { border-style: inset; }
+
+        main { flex: 1; padding: 20px; max-width: 800px; margin: auto; }
+
+        .card {
+            border: 2px solid #444;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* 404 Стилизация */
+        .error-404 {
+            text-align: center;
+            color: var(--rust);
+        }
+    </style>
 </head>
-<body class="theme-standard">
+<body>
 
-    <div id="nixie-tube" class="nixie-off"></div>
+<header>
+    <h1>⚙️ АРТЕЛЬ ФОРДОВА И БЕНЦОВА ⚙️</h1>
+    <div class="nixie-lamp" id="status-lamp">ИН-14: СЕТЬ</div>
+</header>
 
-    <header>
-        <div class="logo-container">
-            <svg class="logo-svg" viewBox="0 0 100 50">
-                <path d="M10,25 Q30,5 50,25 T90,25" stroke="#0047ab" stroke-width="5" fill="none" />
-                <rect x="35" y="20" width="30" height="10" fill="#0047ab" /> </svg>
-            <h1>АРТЕЛЬ ФОРДОВА И БЕНЦОВА</h1>
-            <svg class="logo-svg" viewBox="0 0 100 50">
-                <circle cx="50" cy="25" r="20" stroke="#555" stroke-width="3" fill="none" />
-                <path d="M40,25 L60,25 M50,15 L50,35" stroke="#777" stroke-width="2" />
-            </svg>
-        </div>
-        <nav id="main-nav">
-            <button onclick="showPage('home')">Устав</button>
-            <button onclick="showPage('chat')">Чат</button>
-            <button onclick="showPage('stash')">Заначка</button>
-            <button onclick="showPage('tech')">Справочник</button>
-            <button onclick="showPage('ai')">ИИ</button>
-            <button onclick="showPage('prompts')">Промты</button>
-            <button onclick="showPage('humor')">Гараж</button>
-            <button onclick="showPage('settings')">⚙️</button>
-        </nav>
-    </header>
+<nav>
+    <button class="btn-toggle" onclick="showPage('rules')">Устав</button>
+    <button class="btn-toggle" onclick="showPage('chat')">Чат</button>
+    <button class="btn-toggle" onclick="showPage('stash')">Заначка</button>
+    <button class="btn-toggle" onclick="showPage('settings')">Настройки</button>
+</nav>
 
-    <main id="app-content">
-        </main>
+<main id="content">
+    </main>
 
-    <aside id="sidebar">
-        <div id="calendar-widget">
-            <h3 id="cal-month">Февраль 2026</h3>
-            <div id="calendar-grid"></div>
-            <p id="daily-quote" class="murphy-law"></p>
-        </div>
-        <div id="workshop-stock">
-            <h4>Склад под верстаком</h4>
-            <div id="stock-list"></div>
-            <button class="toggle-btn" onclick="addStockItem()">+ Добавить хлам</button>
-        </div>
-    </aside>
+<script>
+    const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+    const app = document.getElementById('content');
 
-    <div id="offline-toast" style="display:none">Связи нет. Мотаем изоленту... (Офлайн)</div>
+    const pages = {
+        rules: `
+            <div class="card">
+                <h2>📋 10 ЗАПОВЕДЕЙ</h2>
+                <p>1. Синяя изолента — универсальный клей. Если не держит — значит, мало намотал.</p>
+                <p>2. Закон лишней детали: Остались болты? Это оптимизация веса!</p>
+                <button class="btn-toggle" style="background:var(--blue-tape); color:white;">ГОСТно 👍</button>
+            </div>
+        `,
+        chat: `
+            <div class="card">
+                <h2>📟 ГАРАЖНЫЙ ЧАТ</h2>
+                <div id="msg-box" style="height:200px; overflow-y:auto; background:#000; padding:10px; margin-bottom:10px; color:#0f0;"></div>
+                <input type="text" id="msg-input" style="width:70%; padding:10px;" placeholder="Пиши по делу...">
+                <button class="btn-toggle" onclick="send()">ПУСК</button>
+            </div>
+        `,
+        stash: `
+            <div class="card">
+                <h2>💰 ЗАНАЧКА</h2>
+                <p>Здесь пока пусто, как в баке перед зарплатой.</p>
+            </div>
+        `
+    };
 
-    <script src="app.js"></script>
+    function showPage(p) {
+        app.innerHTML = pages[p] || `<div class="error-404"><h2>Система дала течь. Мотай изоленту!</h2></div>`;
+        if(p === 'chat') listenChat();
+    }
+
+    function listenChat() {
+        gun.get('artel_v1_chat').map().once(data => {
+            if(data && data.text) {
+                const node = document.createElement('div');
+                node.innerText = `> ${data.text}`;
+                document.getElementById('msg-box').appendChild(node);
+            }
+        });
+    }
+
+    function send() {
+        const val = document.getElementById('msg-input').value;
+        if(val) {
+            gun.get('artel_v1_chat').set({text: val});
+            document.getElementById('msg-input').value = '';
+        }
+    }
+
+    // Инициализация
+    showPage('rules');
+
+    // Проверка офлайна
+    window.addEventListener('offline', () => {
+        document.getElementById('status-lamp').innerText = "ИН-14: ОФЛАЙН";
+        document.getElementById('status-lamp').style.color = "red";
+    });
+</script>
+
 </body>
 </html>
