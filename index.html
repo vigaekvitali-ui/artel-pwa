@@ -65,7 +65,27 @@
                 </div>
             </div>
         </section>
+<section x-show="page === 3" x-cloak class="space-y-4">
+    <div class="artel-card p-4">
+        <h3 class="font-black text-xs uppercase mb-3 text-blue-900 border-b pb-1">Добавить запчасть в Реестр</h3>
+        <div class="flex gap-2">
+            <input type="text" x-model="newItem" class="flex-1 bg-slate-100 p-2 text-xs outline-none" placeholder="Название детали...">
+            <button @click="addToInventory(newItem); newItem=''" class="bg-blue-900 text-white px-4 text-[10px] font-bold">ОК</button>
+        </div>
+    </div>
 
+    <div class="grid gap-2">
+        <template x-for="item in inventory">
+            <div class="artel-card p-3 flex justify-between items-center bg-white shadow-sm border-l-4 border-amber-600">
+                <div>
+                    <p class="text-xs font-black uppercase" x-text="item.item_name"></p>
+                    <p class="text-[8px] opacity-50 italic">Добавил: <span x-text="item.owner_id"></span></p>
+                </div>
+                <i data-lucide="package" class="w-4 h-4 opacity-20"></i>
+            </div>
+        </template>
+    </div>
+</section>
         <section x-show="page === 4" x-cloak class="space-y-4">
             <div class="artel-card p-4 bg-zinc-900 text-green-400 font-mono text-xs">
                 <p class="mb-2 text-white border-b border-white/20 pb-1 uppercase tracking-widest">OBD_SCANNER_V2</p>
@@ -125,3 +145,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
