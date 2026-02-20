@@ -1,7 +1,6 @@
 // КОНФИГУРАЦИЯ ОБЛАКА
 const SB_URL = 'grsszunlfmehyykkvccj';
 const SB_KEY = 'ZTEGCDF4981E';
-// Инициализация Supabase (исправлено условие)
 const supabase = (SB_URL.includes('your-project')) ? null : supabase.createClient(SB_URL, SB_KEY);
 
 document.addEventListener('alpine:init', () => {
@@ -14,76 +13,59 @@ document.addEventListener('alpine:init', () => {
         
         msg: '',
         messages: [],
-        inventory: [], // Склад под верстаком
-        
+        inventory: [],
         hasNotice: false,
         obdQuery: '',
-        navIcons: ['home', 'message-circle', 'package', 'wrench', 'zap', 'brain-circuit', 'laugh', 'settings'],
-
-        // --- ДАННЫЕ АРТЕЛИ (ТЗ) ---
-        zapovedi: [
-            "1. ТБ — не догма, а рекомендация.",
-            "2. Закон лишней детали: это оптимизация веса.",
-            "3. Синяя изолента лечит всё: от радиатора до сердца.",
-            "4. Уважение к Мастодонтам: слушай ворчание деда.",
-            "5. Инструмент — святое: взял чистым — верни чистым.",
-            "6. Мат — производственная необходимость.",
-            "7. «На глазок» — точнейший прибор.",
-            "8. Никогда не сдавайся: возьми рычаг побольше.",
-            "9. Делись схемами: скрытность — грех.",
-            "10. Обмыл — значит, закрепил."
-        ],
         
-        // Справочник ГОСТов
-        gosts: [
-            {id: '001', title: 'О матюках', desc: 'Разрешены для М24 и выше.'},
-            {id: '002', title: 'О точности', desc: '«Втирочку» и «Норм» — официальные величины.'},
-            {id: '003', title: 'Об изоленте', desc: 'Синий — база. Черный — траур.'}
-        ],
-
-        // Справочник резьб
-        rezba: [
-            {m:'M6', s:'1.0', d:'5.0'}, 
-            {m:'M8', s:'1.25', d:'6.8'}, 
-            {m:'M10', s:'1.5', d:'8.5'},
-            {m:'M12', s:'1.75', d:'10.2'}
-        ],
-
-        // Темы оформления (минимум 5 по ТЗ)
-        themes: [
-            {name:'Изолента', val:'theme-classic', color:'#0047AB'}, 
-            {name:'Мазут', val:'theme-oil', color:'#1A1A1A'}, 
-            {name:'Ржавчина', val:'theme-rust', color:'#8B4513'},
-            {name:'Сталь', val:'theme-steel', color:'#BDC3C7'},
-            {name:'Неон ИН-14', val:'theme-neon', color:'#FF5E00'}
-        ],
-
-        // --- ЛОГИКА КАЛЕНДАРЯ И ЦИТАТ ---
+        // Календарь и цитаты
         currentHoliday: '',
         dailyQuote: '',
-        
+
+        // ДАННЫЕ АРТЕЛИ (ТЗ)
+        zapovedi: [
+            "1. ТБ — не догма, а рекомендация: запасных пальцев не выдают.",
+            "2. Закон лишней детали: если работает — это оптимизация веса.",
+            "3. Синяя изолента — универсальный клей: лечит всё.",
+            "4. Уважение к Мастодонтам: слушай ворчание деда.",
+            "5. Инструмент — святое: взял чистым — верни чистым. Найди край изоленты!",
+            "6. Мат — производственная необходимость: ускоритель процесса.",
+            "7. «На глазок» — точнейший прибор: микрометр не нужен.",
+            "8. Никогда не сдавайся: не крутится — возьми рычаг побольше.",
+            "9. Делись схемами: скрывать решение — грех.",
+            "10. Обмыл — значит, закрепил: иначе будет коррозия."
+        ],
+
+        // СПРАВОЧНИКИ (ТЗ: Page 4)
+        rezba: [
+            {m:'M6', s:'1.0', d:'5.0'}, {m:'M8', s:'1.25', d:'6.8'}, 
+            {m:'M10', s:'1.5', d:'8.5'}, {m:'M12', s:'1.75', d:'10.2'},
+            {m:'M14', s:'2.0', d:'12.0'}, {m:'M16', s:'2.0', d:'14.0'}
+        ],
+
+        // Темы (Минимум 5 по ТЗ)
+        themes: [
+            {name:'Изолента', val:'theme-classic', color:'#0047AB'},
+            {name:'Мазут', val:'theme-oil', color:'#1A1A1A'},
+            {name:'Ржавчина', val:'theme-rust', color:'#8B4513'},
+            {name:'Сталь', val:'theme-steel', color:'#BDC3C7'},
+            {name:'ИН-14 Неон', val:'theme-neon', color:'#FF5E00'}
+        ],
+
         async init() {
             lucide.createIcons();
             document.body.className = this.theme;
-            this.generateQR();
             this.updateCalendar();
+            this.generateQR();
 
-            // 1. Загрузка данных из облака
-            await this.fetchCloudData();
-
-            // 2. Подписка на Realtime
             if (supabase) {
+                await this.fetchCloudData();
+                // Realtime подписка
                 supabase.channel('artel-live')
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'artel_messages' }, payload => {
-                        this.messages.push(payload.new);
-                        if (payload.new.user_id !== this.myId) {
-                            this.hasNotice = true;
-                            this.playNeonSound(); // Опционально: звук лампы ИН-14
-                        }
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'artel_messages' }, p => {
+                        this.messages.push(p.new);
+                        if (p.new.user_id !== this.myId) this.hasNotice = true;
                     })
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'artel_inventory' }, () => {
-                        this.fetchInventory();
-                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'artel_inventory' }, () => this.fetchInventory())
                     .subscribe();
             }
 
@@ -94,78 +76,57 @@ document.addEventListener('alpine:init', () => {
         updateCalendar() {
             const holidays = {
                 "01-01": "Новый год", "01-07": "Рождество (православное)",
-                "03-08": "День женщин", "05-01": "Праздник труда",
                 "05-09": "День Победы", "07-03": "День Независимости РБ",
                 "11-07": "День Октябрьской революции", "12-25": "Рождество (католическое)"
             };
-            const murphy = [
-                "Если деталь должна подойти, она не подойдет.",
-                "Из всех неприятностей произойдет самая затратная.",
-                "Бритва Оккама: не плоди сущностей, мотай изоленту.",
-                "Работает? Не трогай!"
+            const quotes = [
+                "Если деталь должна подойти, она не подойдет. (Закон Мерфи)",
+                "Бритва Оккама: отсекай лишнее, мотай синее.",
+                "Всё, что может пойти не так, пойдет не так.",
+                "Если прибор не работает, прочтите, наконец, инструкцию!"
             ];
-            
-            const today = new Date();
-            const key = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const now = new Date();
+            const key = `${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
             this.currentHoliday = holidays[key] || "Будни в Артели";
-            this.dailyQuote = murphy[today.getDate() % murphy.length];
+            this.dailyQuote = quotes[now.getDate() % quotes.length];
         },
 
-        // --- РАБОТА С КЛАУДОМ ---
         async fetchCloudData() {
-            if (!supabase) return;
             const { data: msgs } = await supabase.from('artel_messages').select('*').order('created_at', { ascending: true }).limit(50);
             if (msgs) this.messages = msgs;
             this.fetchInventory();
         },
 
         async fetchInventory() {
-            if (!supabase) return;
             const { data } = await supabase.from('artel_inventory').select('*').order('created_at', { ascending: false });
             if (data) this.inventory = data;
         },
 
         async sendMsg() {
-            if (!this.msg.trim()) return;
+            if (!this.msg.trim() || !supabase) return;
             const newMsg = { text: this.msg, user_id: this.myId, username: this.username };
-            
-            if (supabase) {
-                await supabase.from('artel_messages').insert([newMsg]);
-            } else {
-                this.messages.push(newMsg); // Offline fallback
-            }
-
+            await supabase.from('artel_messages').insert([newMsg]);
             this.msg = '';
-            // Анимация тумблера "ПУСК"
-            setTimeout(() => { 
-                const btn = document.getElementById('pusker');
-                if(btn) btn.checked = false; 
-            }, 500);
-        },
-
-        setTheme(t) {
-            this.theme = t;
-            localStorage.setItem('artel_theme', t);
-            document.body.className = t;
-        },
-
-        generateQR() {
-            if (typeof qrcode === 'undefined') return;
-            const qr = qrcode(0, 'M');
-            qr.addData(window.location.href);
-            qr.make();
-            const el = document.getElementById('qrcode');
-            if (el) el.innerHTML = qr.createImgTag(4);
+            // Возвращаем тумблер ПУСК в исходное положение через 0.5с
+            setTimeout(() => { if(document.getElementById('pusker')) document.getElementById('pusker').checked = false; }, 500);
         },
 
         scanOBD() {
             const codes = {
-                "P0101": "Нарушение работы ДМРВ.",
-                "P0300": "Пропуски зажигания. Проверь провода.",
-                "P0420": "Эффективность катализатора низкая. Вырезай.",
-                "P0500": "Датчик скорости сдох."
+                "P0171": "Бедная смесь. Ищи подсос воздуха.",
+                "P0300": "Пропуски зажигания. Проверь свечи.",
+                "P0500": "Датчик скорости. Оборван провод."
             };
-            return codes[this.obdQuery.toUpperCase()] || "КОД НЕ НАЙДЕН. ИЩИ ПОДСОС ВОЗДУХА.";
+            return codes[this.obdQuery.toUpperCase()] || "КОД НЕ НАЙДЕН. МОТАЙ ИЗОЛЕНТУ.";
+        },
+
+        generateQR() {
+            if (typeof qrcode === 'undefined') return;
+            const qr = qrcode(0, 'L');
+            qr.addData(window.location.href);
+            qr.make();
+            const container = document.getElementById('qrcode');
+            if (container) container.innerHTML = qr.createImgTag(4);
         }
     }));
 });
