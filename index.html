@@ -3,151 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>АРТЕЛЬ: ПОЛНЫЙ ПРИВОД</title>
-    <script src="https://unpkg.com/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+    <title>АРТЕЛЬ ФОРДОВА И БЕНЦОВА</title>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
     <style>
         [x-cloak] { display: none !important; }
-        :root { --blue-tape: #0047ab; --neon: #ff5e00; --steel: #bdc3c7; }
-        body { background: #111; color: var(--steel); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
-        .page { display: none; padding: 20px; animation: fadeIn 0.2s; }
-        .active { display: block !important; }
-        .gost-card { border: 1px solid var(--blue-tape); padding: 15px; margin-bottom: 10px; background: rgba(0,71,171,0.1); border-left: 4px solid var(--blue-tape); }
-        .neon-text { color: var(--neon); text-shadow: 0 0 5px var(--neon); }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue-tape); z-index: 1000; }
-        .nav-item { color: #444; cursor: pointer; transition: 0.3s; }
-        .active-nav { color: var(--neon); transform: translateY(-5px); }
-        input, .btn-pusker { width: 100%; padding: 12px; background: #000; border: 1px solid var(--blue-tape); color: white; box-sizing: border-box; }
-        .btn-pusker { background: var(--blue-tape); font-weight: bold; cursor: pointer; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
-        th { background: var(--blue-tape); color: white; }
+        :root { 
+            --blue-tape: #0047ab; 
+            --steel: #bdc3c7; 
+            --oil: #1a1a1a; 
+            --rust: #8b4513; 
+            --neon-orange: #ff5e00;
+        }
+
+        /* Темы оформления */
+        .theme-classic { --bg: #1a1a1a; --text: var(--steel); --accent: var(--blue-tape); }
+        .theme-rust { --bg: #2b1d12; --text: #d2b48c; --accent: var(--rust); }
+        .theme-steel { --bg: #2c3e50; --text: #ecf0f1; --accent: #7f8c8d; }
+        .theme-oil { --bg: #000000; --text: #888; --accent: #444; }
+        .theme-neon { --bg: #050505; --text: #00ff00; --accent: var(--neon-orange); }
+
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: 'Courier New', monospace; 
+            margin: 0; padding-bottom: 70px; 
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Логотип и Хедер */
+        .header-main { text-align: center; border-bottom: 2px solid var(--accent); padding: 15px; background: #000; }
+        .logo-svg { width: 40px; vertical-align: middle; fill: var(--blue-tape); }
+
+        /* ИН-14 Лампочка */
+        .in-14 { 
+            color: var(--neon-orange); 
+            text-shadow: 0 0 10px var(--neon-orange), 0 0 20px var(--neon-orange);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Страницы */
+        .page { display: none; padding: 15px; animation: slideIn 0.3s ease-out; }
+        .page.active { display: block; }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Карточки ГОСТ */
+        .gost-card { 
+            border: 1px solid var(--accent); 
+            background: rgba(0,0,0,0.3); 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            position: relative;
+            border-left: 5px solid var(--accent);
+        }
+
+        /* Тумблер ПУСК */
+        .tumbler-container { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .switch {
+            position: relative; display: inline-block; width: 60px; height: 34px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border: 2px solid var(--accent);
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 2px;
+            background-color: var(--accent); transition: .4s;
+        }
+        input:checked + .slider { background-color: var(--blue-tape); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* Кнопка ГОСТно */
+        .btn-gost { 
+            background: none; border: 1px solid var(--text); color: var(--text); 
+            padding: 5px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px;
+        }
+        .btn-gost:hover { color: var(--neon-orange); border-color: var(--neon-orange); }
+
+        /* Навигация */
+        .nav-bar { 
+            position: fixed; bottom: 0; width: 100%; background: #000; 
+            display: flex; justify-content: space-around; padding: 10px 0; 
+            border-top: 2px solid var(--accent); z-index: 1000;
+        }
+        .nav-item { color: #555; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
+
+        /* Таблица Справочника */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        th, td { border: 1px solid var(--accent); padding: 8px; text-align: left; }
+        th { background: rgba(0,71,171,0.2); }
+
+        /* Календарь */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.7rem; }
+        .cal-day { padding: 5px; border: 1px solid #333; }
+        .cal-today { background: var(--blue-tape); color: #fff; }
+        .holiday { color: var(--neon-orange); font-weight: bold; }
     </style>
 </head>
-<body x-data="artelCore" x-cloak>
+<body x-data="artelApp" :class="currentTheme" x-cloak>
 
-    <header style="padding: 15px; text-align: center; background: #000; border-bottom: 1px solid var(--blue-tape);">
-        <h1 style="margin: 0; font-size: 0.9rem;" class="neon-text">🛠 ЦУП АРТЕЛИ v2.0</h1>
+    <header class="header-main">
+        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+        <h2 style="display: inline; margin: 0 10px; font-size: 1.2rem;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</h2>
+        <svg class="logo-svg" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
     </header>
 
-    <div :class="{ 'active': page === 1 }" class="page">
-        <div class="gost-card" style="border-color: var(--neon);">
-            <div class="neon-text" style="font-weight: bold; font-size: 1.1rem;" x-text="holidayTitle"></div>
-            <div style="font-size: 0.8rem; margin-top: 5px;" x-text="todayDate"></div>
-            <hr style="border: 0.5px solid #333; margin: 10px 0;">
-            <div style="font-style: italic; color: #fff;" x-text="'«' + dailyQuote + '»'"></div>
+    <div class="page" :class="{ 'active': page === 1 }">
+        <div class="gost-card">
+            <h3 class="in-14" style="margin-top:0">СИНЯЯ ИЗОЛЕНТА</h3>
+            <p style="font-style: italic">«Если не держит — значит, мало намотал»</p>
+            
+            <div class="cal-grid">
+                <template x-for="day in calendarDays">
+                    <div class="cal-day" :class="{'cal-today': day.isToday, 'holiday': day.isHoliday}" x-text="day.d"></div>
+                </template>
+            </div>
+            <div style="margin-top:10px; font-size: 0.8rem; border-top: 1px solid #444; padding-top:5px;">
+                <strong>Закон Мерфи:</strong> <span x-text="dailyQuote"></span>
+            </div>
         </div>
-        <h3 class="neon-text">УСТАВ</h3>
+
+        <h3 class="neon-text">📋 10 ЗАПОВЕДЕЙ</h3>
         <template x-for="(z, i) in zapovedi">
-            <div class="gost-card" style="font-size: 0.8rem;" x-text="(i+1) + '. ' + z"></div>
-        </template>
-    </div>
-
-    <div :class="{ 'active': page === 2 }" class="page">
-        <h3 class="neon-text">РАДИОРУБКА</h3>
-        <div id="chat" style="height: 300px; overflow-y: auto; border: 1px solid var(--blue-tape); background: #000; padding: 10px; margin-bottom: 10px;">
-            <template x-for="m in messages">
-                <div style="margin-bottom: 10px; border-left: 2px solid var(--blue-tape); padding-left: 10px;">
-                    <small class="neon-text" x-text="m.username"></small>
-                    <div x-text="m.text"></div>
-                </div>
-            </template>
-        </div>
-        <input type="text" x-model="msg" @keyup.enter="sendMsg" placeholder="Приём...">
-        <button @click="sendMsg" class="btn-pusker">ОТПРАВИТЬ В ЭФИР</button>
-    </div>
-
-    <div :class="{ 'active': page === 3 }" class="page">
-        <h3 class="neon-text">ЗАПЧАСТИ НА ОБМЕН</h3>
-        <template x-for="item in inventory">
-            <div class="gost-card" style="display: flex; justify-content: space-between;">
-                <span x-text="item.name"></span>
-                <span class="neon-text" x-text="item.owner"></span>
+            <div class="gost-card">
+                <strong x-text="(i+1) + '. ' + z.title"></strong>
+                <p x-text="z.text" style="font-size: 0.8rem; margin: 5px 0;"></p>
+                <button class="btn-gost" @click="likeZapoved(i)">
+                    <i data-lucide="thumbs-up" style="width:14px"></i> ГОСТно <span x-text="z.likes"></span>
+                </button>
             </div>
         </template>
     </div>
 
-    <div :class="{ 'active': page === 4 }" class="page">
-        <h3 class="neon-text">МЕТРИЧЕСКАЯ РЕЗЬБА</h3>
-        
+    <div class="page" :class="{ 'active': page === 2 }">
+        <div class="gost-card">
+            <div class="in-14">В ЭФИРЕ: <span x-text="onlineCount"></span> МАСТЕРОВ</div>
+        </div>
+        <div id="chat-box" style="height: 350px; overflow-y: auto; background: #000; border: 1px solid var(--accent); padding: 10px;">
+            <template x-for="m in messages">
+                <div style="margin-bottom: 10px; border-left: 2px solid var(--blue-tape); padding-left: 10px;">
+                    <small x-text="m.user" :style="{color: m.role === 'admin' ? 'red' : 'var(--neon-orange)'}"></small>
+                    <div x-text="m.text"></div>
+                </div>
+            </template>
+        </div>
+        <div class="tumbler-container">
+            <input type="text" x-model="newMsg" placeholder="Доклад..." style="flex:1; background: #111; color: #fff; border: 1px solid var(--accent); padding: 10px;">
+            <label class="switch">
+                <input type="checkbox" @change="sendMsg($el)">
+                <span class="slider"></span>
+            </label>
+            <span style="font-weight:bold">ПУСК</span>
+        </div>
+    </div>
+
+    <div class="page" :class="{ 'active': page === 3 }">
+        <h3 class="in-14">ЯЩИК "НЗ"</h3>
+        <div class="gost-card">📦 <strong>Биржа Дефицита:</strong> В наличии карбюратор К-126.</div>
+        <div class="gost-card">💡 <strong>Вредные советы:</strong> Как завести дизель в -40 с помощью факела.</div>
+        <div class="gost-card">📜 <strong>Чертежный архив:</strong> Схема разводки вакуума Ford Sierra.</div>
+    </div>
+
+    <div class="page" :class="{ 'active': page === 4 }">
+        <h3 class="neon-text">ГОСТ СПРАВОЧНИК</h3>
+        <input type="text" x-model="searchQuery" placeholder="Поиск (Резьба, подшипник, OBD...)" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--accent);">
         <table>
-            <thead><tr><th>M</th><th>Шаг</th><th>Сверло</th></tr></thead>
+            <thead><tr><th>Тип</th><th>Параметр</th><th>ГОСТ</th></tr></thead>
             <tbody>
-                <template x-for="r in rezba">
-                    <tr><td x-text="r.m"></td><td x-text="r.s"></td><td x-text="r.d" class="neon-text"></td></tr>
+                <template x-for="item in filteredRefs">
+                    <tr><td x-text="item.type"></td><td x-text="item.val"></td><td x-text="item.gost" class="in-14"></td></tr>
                 </template>
             </tbody>
         </table>
-        <h3 class="neon-text" style="margin-top:20px;">OBD-II СКАНЕР</h3>
-        <input type="text" x-model="obdQuery" placeholder="Введи код (P0300)">
-        <div class="gost-card" style="margin-top:10px;" x-text="scanOBD()"></div>
     </div>
 
-    <div :class="{ 'active': page === 5 }" class="page">
-        <h3 class="neon-text">ИНСТРУМЕНТЫ (НУЖЕН VPN)</h3>
-        <div class="gost-card"><strong>VPN:</strong> <a href="https://1.1.1.1" style="color:var(--neon)">Cloudflare 1.1.1.1</a> (Бесплатно)</div>
-        <div class="gost-card"><strong>ИИ:</strong> <a href="https://chatgpt.com" style="color:white">ChatGPT</a></div>
-        <div class="gost-card"><strong>ИИ:</strong> <a href="https://gemini.google.com" style="color:white">Google Gemini</a></div>
+    <div class="page" :class="{ 'active': page === 5 }">
+        <div class="gost-card" style="border-color: red;">
+            ⚠️ <strong>ВНИМАНИЕ:</strong> Для работы с сервисами ИИ нужно установить VPN!
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <a href="https://gemini.google.com" class="gost-card" style="text-align: center; text-decoration: none; color: inherit;">Gemini AI</a>
+            <a href="https://suno.com" class="gost-card" style="text-align: center; text-decoration: none; color: inherit;">Suno Music</a>
+            <a href="https://1.1.1.1" class="gost-card" style="text-align: center; text-decoration: none; color: #00ff00;">Бесплатный VPN</a>
+        </div>
     </div>
 
-    <div :class="{ 'active': page === 6 }" class="page">
-        <h3 class="neon-text">ГЕНЕРАТОР ПРОМТОВ</h3>
-        <div class="gost-card" style="min-height: 100px; display: flex; align-items: center; justify-content: center; text-align: center;" x-text="currentPrompt"></div>
-        <button @click="shufflePrompt" class="btn-pusker">СГЕНЕРИРОВАТЬ ИДЕЮ</button>
+    <div class="page" :class="{ 'active': page === 6 }">
+        <h3 class="in-14">ВЕРСТАК ИДЕЙ</h3>
+        <div class="gost-card" x-text="currentPrompt"></div>
+        <button class="btn-pusker btn-gost" @click="shufflePrompt" style="width:100%; justify-content: center; padding: 15px;">ОБНОВИТЬ ИДЕЮ</button>
     </div>
 
-    <div :class="{ 'active': page === 7 }" class="page">
-        <h3 class="neon-text">БАЙКИ ИЗ ГАРАЖА</h3>
-        <div class="gost-card" style="min-height: 100px;" x-text="currentJoke"></div>
-        <button @click="shuffleJoke" class="btn-pusker">РАССКАЗАТЬ ЕЩЁ</button>
+    <div class="page" :class="{ 'active': page === 7 }">
+        <h3 class="neon-text">ГАРАЖНЫЕ БАЙКИ</h3>
+        <div class="gost-card" style="font-size: 1.1rem;" x-text="currentJoke"></div>
+        <button class="btn-gost" @click="shuffleJoke" style="width:100%; justify-content: center; padding: 15px;">ЕЩЁ АНЕКДОТ</button>
     </div>
 
-    <div :class="{ 'active': page === 8 }" class="page">
-        <h3 class="neon-text">СВЯЗЬ</h3>
-        <div class="gost-card">Логин: <input type="text" x-model="username"></div>
-        <div id="qrcode" style="display: flex; justify-content: center; background: white; padding: 10px; margin-top: 10px;"></div>
+    <div class="page" :class="{ 'active': page === 8 }">
+        <h3 class="in-14">ЦЕХОВАЯ НАСТРОЙКА</h3>
+        <div class="gost-card">
+            <label>Смена оформления:</label>
+            <select x-model="currentTheme" @change="saveTheme" style="width:100%; background:#000; color:#fff; padding:10px;">
+                <option value="theme-classic">Синяя изолента</option>
+                <option value="theme-rust">Ржавое железо</option>
+                <option value="theme-steel">Оцинковка</option>
+                <option value="theme-oil">Мазут</option>
+                <option value="theme-neon">ИН-14 Неон</option>
+            </select>
+        </div>
+        <div id="qrcode" style="display: flex; justify-content: center; padding: 20px; background: #fff; margin-top: 10px;"></div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item" :class="{'active-nav': page === 1}" @click="setPage(1)"><i data-lucide="home"></i></div>
-        <div class="nav-item" :class="{'active-nav': page === 2}" @click="setPage(2)"><i data-lucide="message-circle"></i></div>
-        <div class="nav-item" :class="{'active-nav': page === 3}" @click="setPage(3)"><i data-lucide="package"></i></div>
-        <div class="nav-item" :class="{'active-nav': page === 4}" @click="setPage(4)"><i data-lucide="wrench"></i></div>
-        <div class="nav-item" :class="{'active-nav': page === 5}" @click="setPage(5)"><i data-lucide="zap"></i></div>
-        <div class="nav-item" :class="{'active-nav': page === 6}" @click="setPage(6)"><i data-lucide="brain-circuit"></i></div>
-        <div class="nav-item" :class="{'active-nav': page === 7}" @click="setPage(7)"><i data-lucide="laugh"></i></div>
-        <div class="nav-item" :class="{'active-nav': page === 8}" @click="setPage(8)"><i data-lucide="settings"></i></div>
+        <div class="nav-item" :class="{'active': page === 1}" @click="setPage(1)"><i data-lucide="home"></i></div>
+        <div class="nav-item" :class="{'active': page === 2}" @click="setPage(2)"><i data-lucide="message-square"></i></div>
+        <div class="nav-item" :class="{'active': page === 3}" @click="setPage(3)"><i data-lucide="box"></i></div>
+        <div class="nav-item" :class="{'active': page === 4}" @click="setPage(4)"><i data-lucide="wrench"></i></div>
+        <div class="nav-item" :class="{'active': page === 5}" @click="setPage(5)"><i data-lucide="zap"></i></div>
+        <div class="nav-item" :class="{'active': page === 6}" @click="setPage(6)"><i data-lucide="lightbulb"></i></div>
+        <div class="nav-item" :class="{'active': page === 7}" @click="setPage(7)"><i data-lucide="smile"></i></div>
+        <div class="nav-item" :class="{'active': page === 8}" @click="setPage(8)"><i data-lucide="settings"></i></div>
     </nav>
 
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('artelCore', () => ({
+            Alpine.data('artelApp', () => ({
                 page: 1,
-                username: 'Мастер-' + Math.floor(Math.random()*99),
-                msg: '',
-                messages: [],
-                obdQuery: '',
-                holidayTitle: '',
-                todayDate: '',
+                currentTheme: localStorage.getItem('artel_theme') || 'theme-classic',
+                onlineCount: Math.floor(Math.random() * 5) + 1,
+                newMsg: '',
+                searchQuery: '',
                 dailyQuote: '',
                 currentPrompt: '',
                 currentJoke: '',
-
-                zapovedi: ["ТБ — не догма.", "Изолента — сила.", "Мат — ускоритель.", "Обмыл — закрепил."],
-                rezba: [{m:'M6', s:'1.0', d:'5.0'}, {m:'M8', s:'1.25', d:'6.8'}, {m:'M10', s:'1.5', d:'8.5'}],
-                inventory: [{name:'Трамблер ВАЗ', owner:'Юрич'}, {name:'Набор ключей', owner:'Админ'}],
-
-                prompts: [
-                    "Спроектируй вездеход на базе старой стиральной машины.",
-                    "Напиши инструкцию: как починить коробку передач с помощью магнита и молитвы.",
-                    "Придумай дизайн гаража в стиле киберпанк из СССР."
+                calendarDays: [],
+                
+                messages: [
+                    {user: 'Мастодонт', text: 'Клейте изоленту стык в стык!', role: 'admin'}
                 ],
-                jokes: [
-                    "Заходит инженер в бар, а там все работает. Он такой: 'Непорядок!'",
-                    "Купил мужик машину, а она — ведро. Зато синее ведро!",
-                    "Если деталь лишняя — значит, она запасная."
+
+                zapovedi: [
+                    {title: 'ТБ — не догма', text: 'Но помни, запасных пальцев в Артели не выдают.', likes: 12},
+                    {title: 'Закон лишней детали', text: 'Остались болты? Это оптимизация веса!', likes: 45},
+                    {title: 'Синяя изолента', text: 'Лечит всё: от радиатора до сердца.', likes: 108},
+                    {title: 'Уважение к Мастодонтам', text: 'Слушай деда — в нем опыт трех капремонтов.', likes: 30}
+                ],
+
+                refs: [
+                    {type: 'Резьба M6', val: 'Шаг 1.0, Сверло 5.0', gost: '001'},
+                    {type: 'Резьба M8', val: 'Шаг 1.25, Сверло 6.8', gost: '001'},
+                    {type: 'Ошибка P0300', val: 'Пропуски зажигания', gost: '002'},
+                    {type: 'Подшипник 203', val: '17x40x12 мм', gost: '004'}
                 ],
 
                 init() {
@@ -156,42 +270,55 @@
                     this.shufflePrompt();
                     this.shuffleJoke();
                     this.generateQR();
-                    this.initCloud();
+                    this.dailyQuote = "Если что-то может пойти не так, оно пойдет не так.";
                 },
 
-                setPage(p) { this.page = p; this.$nextTick(() => lucide.createIcons()); },
+                setPage(p) {
+                    this.page = p;
+                    this.$nextTick(() => lucide.createIcons());
+                },
 
                 updateCalendar() {
                     const now = new Date();
-                    this.todayDate = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-                    const holidays = { "01-01": "Новый Год!", "01-07": "Рождество", "02-23": "День Защитника!", "03-08": "С 8 Марта!", "05-01": "Мир, Труд, Май!", "05-09": "День Победы!", "07-03": "День Независимости РБ!" };
-                    const key = now.toISOString().slice(5, 10);
-                    this.holidayTitle = holidays[key] || "Рабочая смена";
-                    const quotes = ["Работает? Не лезь!", "Семь раз отмерь, один раз отрежь.", "Синяя изолента — залог успеха."];
-                    this.dailyQuote = quotes[now.getDate() % quotes.length];
+                    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                    const holidays = ['01-01', '01-07', '02-23', '03-08', '05-01', '05-09', '07-03', '11-07', '12-25'];
+                    
+                    for(let i=1; i<=daysInMonth; i++) {
+                        const dateStr = `${now.getMonth()+1 < 10 ? '0' : ''}${now.getMonth()+1}-${i < 10 ? '0' : ''}${i}`;
+                        this.calendarDays.push({
+                            d: i,
+                            isToday: i === now.getDate(),
+                            isHoliday: holidays.includes(dateStr)
+                        });
+                    }
                 },
 
-                shufflePrompt() { this.currentPrompt = this.prompts[Math.floor(Math.random() * this.prompts.length)]; },
-                shuffleJoke() { this.currentJoke = this.jokes[Math.floor(Math.random() * this.jokes.length)]; },
-
-                async initCloud() {
-                    try {
-                        const sb = supabase.createClient('https://grsszunlfmehyykkvccj.supabase.co', 'ZTEGCDF4981E');
-                        const { data } = await sb.from('artel_messages').select('*').limit(20);
-                        if (data) this.messages = data;
-                    } catch(e) {}
+                sendMsg(el) {
+                    if(el.checked && this.newMsg) {
+                        this.messages.push({user: 'Мастер', text: this.newMsg, role: 'user'});
+                        this.newMsg = '';
+                        setTimeout(() => el.checked = false, 500);
+                        document.getElementById('chat-box').scrollTop = 9999;
+                    }
                 },
 
-                sendMsg() {
-                    if(!this.msg) return;
-                    this.messages.push({username: this.username, text: this.msg});
-                    this.msg = '';
+                get filteredRefs() {
+                    return this.refs.filter(i => i.type.toLowerCase().includes(this.searchQuery.toLowerCase()));
                 },
 
-                scanOBD() {
-                    const codes = {"P0300": "Пропуски зажигания", "P0171": "Бедная смесь"};
-                    return codes[this.obdQuery.toUpperCase()] || "Код не найден. Проверь синюю изоленту.";
+                shufflePrompt() {
+                    const prompts = ["Собери дрон из консервной банки.", "Вечный двигатель на магнитах и липучке.", "Как перекрасить авто кисточкой и не плакать."];
+                    this.currentPrompt = prompts[Math.floor(Math.random()*prompts.length)];
                 },
+
+                shuffleJoke() {
+                    const jokes = ["Инженер — это человек, который может нарисовать чертеж лома.", "— Почему синяя изолента? — Потому что черная для траура.", "Если деталь лишняя, значит она запасная."];
+                    this.currentJoke = jokes[Math.floor(Math.random()*jokes.length)];
+                },
+
+                saveTheme() { localStorage.setItem('artel_theme', this.currentTheme); },
+
+                likeZapoved(i) { this.zapovedi[i].likes++; },
 
                 generateQR() {
                     const qr = qrcode(0, 'M');
