@@ -3,48 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>АРТЕЛЬ: ГЛАВНЫЙ ЦЕХ</title>
-    
+    <title>АРТЕЛЬ: ПОЛНЫЙ ПРИВОД</title>
     <script src="https://unpkg.com/lucide@0.321.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
-
     <style>
         [x-cloak] { display: none !important; }
         :root { --blue-tape: #0047ab; --neon: #ff5e00; --steel: #bdc3c7; }
         body { background: #111; color: var(--steel); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
-        
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .page { display: none; padding: 20px; animation: fadeIn 0.2s; }
         .active { display: block !important; }
-        
         .gost-card { border: 1px solid var(--blue-tape); padding: 15px; margin-bottom: 10px; background: rgba(0,71,171,0.1); border-left: 4px solid var(--blue-tape); }
         .neon-text { color: var(--neon); text-shadow: 0 0 5px var(--neon); }
-        
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue-tape); box-shadow: 0 -5px 15px rgba(0,0,0,0.5); z-index: 1000; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue-tape); z-index: 1000; }
         .nav-item { color: #444; cursor: pointer; transition: 0.3s; }
-        .nav-item.active-nav { color: var(--neon); transform: translateY(-5px); }
-        
-        input, select { width: 100%; padding: 12px; background: #000; border: 1px solid var(--blue-tape); color: white; box-sizing: border-box; margin-top: 5px; }
-        .btn-pusker { background: var(--blue-tape); border: none; color: white; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        .active-nav { color: var(--neon); transform: translateY(-5px); }
+        input, .btn-pusker { width: 100%; padding: 12px; background: #000; border: 1px solid var(--blue-tape); color: white; box-sizing: border-box; }
+        .btn-pusker { background: var(--blue-tape); font-weight: bold; cursor: pointer; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         th, td { border: 1px solid #333; padding: 10px; text-align: center; }
         th { background: var(--blue-tape); color: white; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body x-data="artelCore" x-cloak>
 
     <header style="padding: 15px; text-align: center; background: #000; border-bottom: 1px solid var(--blue-tape);">
-        <h1 style="margin: 0; font-size: 0.9rem; letter-spacing: 2px;" class="neon-text">🛠 АРТЕЛЬ ФОРДОВА И БЕНЦОВА</h1>
+        <h1 style="margin: 0; font-size: 0.9rem;" class="neon-text">🛠 ЦУП АРТЕЛИ v2.0</h1>
     </header>
 
     <div :class="{ 'active': page === 1 }" class="page">
-        <div class="gost-card">
-            <div class="neon-text" style="font-weight: bold;" x-text="currentHoliday"></div>
-            <div style="font-size: 0.8rem; font-style: italic; margin-top: 5px;" x-text="dailyQuote"></div>
+        <div class="gost-card" style="border-color: var(--neon);">
+            <div class="neon-text" style="font-weight: bold; font-size: 1.1rem;" x-text="holidayTitle"></div>
+            <div style="font-size: 0.8rem; margin-top: 5px;" x-text="todayDate"></div>
+            <hr style="border: 0.5px solid #333; margin: 10px 0;">
+            <div style="font-style: italic; color: #fff;" x-text="'«' + dailyQuote + '»'"></div>
         </div>
-        <h3 class="neon-text">ЗАПОВЕДИ МАСТЕРОВ</h3>
+        <h3 class="neon-text">УСТАВ</h3>
         <template x-for="(z, i) in zapovedi">
             <div class="gost-card" style="font-size: 0.8rem;" x-text="(i+1) + '. ' + z"></div>
         </template>
@@ -52,35 +47,31 @@
 
     <div :class="{ 'active': page === 2 }" class="page">
         <h3 class="neon-text">РАДИОРУБКА</h3>
-        <div style="height: 300px; overflow-y: auto; border: 1px solid var(--blue-tape); background: #000; padding: 10px; margin-bottom: 10px;">
+        <div id="chat" style="height: 300px; overflow-y: auto; border: 1px solid var(--blue-tape); background: #000; padding: 10px; margin-bottom: 10px;">
             <template x-for="m in messages">
                 <div style="margin-bottom: 10px; border-left: 2px solid var(--blue-tape); padding-left: 10px;">
-                    <small class="neon-text" x-text="m.username"></small><br>
-                    <span x-text="m.text"></span>
+                    <small class="neon-text" x-text="m.username"></small>
+                    <div x-text="m.text"></div>
                 </div>
             </template>
         </div>
-        <div style="display: flex; gap: 5px;">
-            <input type="text" x-model="msg" @keyup.enter="sendMsg" placeholder="Приём...">
-            <button @click="sendMsg" class="btn-pusker">ПУСК</button>
-        </div>
+        <input type="text" x-model="msg" @keyup.enter="sendMsg" placeholder="Приём...">
+        <button @click="sendMsg" class="btn-pusker">ОТПРАВИТЬ В ЭФИР</button>
     </div>
 
     <div :class="{ 'active': page === 3 }" class="page">
-        <h3 class="neon-text">БИРЖА ДЕФИЦИТА</h3>
+        <h3 class="neon-text">ЗАПЧАСТИ НА ОБМЕН</h3>
         <template x-for="item in inventory">
-            <div class="gost-card" style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <strong x-text="item.name" style="color: var(--neon);"></strong><br>
-                    <small x-text="item.desc"></small>
-                </div>
-                <small x-text="item.owner" style="color: #666;"></small>
+            <div class="gost-card" style="display: flex; justify-content: space-between;">
+                <span x-text="item.name"></span>
+                <span class="neon-text" x-text="item.owner"></span>
             </div>
         </template>
     </div>
 
     <div :class="{ 'active': page === 4 }" class="page">
-        <h3 class="neon-text">РЕЗЬБЫ ГОСТ</h3>
+        <h3 class="neon-text">МЕТРИЧЕСКАЯ РЕЗЬБА</h3>
+        
         <table>
             <thead><tr><th>M</th><th>Шаг</th><th>Сверло</th></tr></thead>
             <tbody>
@@ -89,37 +80,34 @@
                 </template>
             </tbody>
         </table>
-        <h3 class="neon-text" style="margin-top: 20px;">OBD-II КОДЫ</h3>
-        <input type="text" x-model="obdQuery" placeholder="P0300...">
-        <div style="margin-top: 10px; padding: 10px; background: #000; border: 1px solid var(--neon);" x-text="scanOBD()"></div>
+        <h3 class="neon-text" style="margin-top:20px;">OBD-II СКАНЕР</h3>
+        <input type="text" x-model="obdQuery" placeholder="Введи код (P0300)">
+        <div class="gost-card" style="margin-top:10px;" x-text="scanOBD()"></div>
     </div>
 
     <div :class="{ 'active': page === 5 }" class="page">
-        <h3 class="neon-text">НЕЙРО-ВЕРСТАК</h3>
-        <div class="gost-card"><a href="https://gemini.google.com" style="color: white; text-decoration: none;">🤖 Gemini AI (Инженер)</a></div>
-        <div class="gost-card"><a href="https://suno.com" style="color: white; text-decoration: none;">🎸 Suno (Гаражный рок)</a></div>
-        <div class="gost-card"><a href="https://canva.com" style="color: white; text-decoration: none;">🎨 Canva (Чертежи)</a></div>
+        <h3 class="neon-text">ИНСТРУМЕНТЫ (НУЖЕН VPN)</h3>
+        <div class="gost-card"><strong>VPN:</strong> <a href="https://1.1.1.1" style="color:var(--neon)">Cloudflare 1.1.1.1</a> (Бесплатно)</div>
+        <div class="gost-card"><strong>ИИ:</strong> <a href="https://chatgpt.com" style="color:white">ChatGPT</a></div>
+        <div class="gost-card"><strong>ИИ:</strong> <a href="https://gemini.google.com" style="color:white">Google Gemini</a></div>
     </div>
 
     <div :class="{ 'active': page === 6 }" class="page">
-        <h3 class="neon-text">ГЕНЕРАТОР ИДЕЙ</h3>
-        <div class="gost-card" x-text="currentPrompt"></div>
-        <button @click="shufflePrompt" class="btn-pusker" style="width: 100%;">СЛЕДУЮЩАЯ ИДЕЯ</button>
+        <h3 class="neon-text">ГЕНЕРАТОР ПРОМТОВ</h3>
+        <div class="gost-card" style="min-height: 100px; display: flex; align-items: center; justify-content: center; text-align: center;" x-text="currentPrompt"></div>
+        <button @click="shufflePrompt" class="btn-pusker">СГЕНЕРИРОВАТЬ ИДЕЮ</button>
     </div>
 
     <div :class="{ 'active': page === 7 }" class="page">
-        <h3 class="neon-text">ГАРАЖНЫЕ БАЙКИ</h3>
-        <div class="gost-card" x-text="currentJoke"></div>
-        <button @click="shuffleJoke" class="btn-pusker" style="width: 100%;">ЕЩЁ!</button>
+        <h3 class="neon-text">БАЙКИ ИЗ ГАРАЖА</h3>
+        <div class="gost-card" style="min-height: 100px;" x-text="currentJoke"></div>
+        <button @click="shuffleJoke" class="btn-pusker">РАССКАЗАТЬ ЕЩЁ</button>
     </div>
 
     <div :class="{ 'active': page === 8 }" class="page">
-        <h3 class="neon-text">НАСТРОЙКИ</h3>
-        <div class="gost-card">
-            <label>Твой позывной:</label>
-            <input type="text" x-model="username">
-        </div>
-        <div id="qrcode" style="display: flex; justify-content: center; background: #fff; padding: 15px; border: 4px solid var(--blue-tape); margin-top: 10px;"></div>
+        <h3 class="neon-text">СВЯЗЬ</h3>
+        <div class="gost-card">Логин: <input type="text" x-model="username"></div>
+        <div id="qrcode" style="display: flex; justify-content: center; background: white; padding: 10px; margin-top: 10px;"></div>
     </div>
 
     <nav class="nav-bar">
@@ -137,76 +125,79 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('artelCore', () => ({
                 page: 1,
-                username: localStorage.getItem('artel_user') || 'Инженер-' + Math.floor(Math.random() * 99),
+                username: 'Мастер-' + Math.floor(Math.random()*99),
                 msg: '',
                 messages: [],
                 obdQuery: '',
-                currentHoliday: 'Рабочая смена',
-                dailyQuote: 'Работает? Не трогай!',
-                currentPrompt: 'Спроектируй вечный двигатель на синей изоленте...',
-                currentJoke: 'Лишняя деталь - это признак того, что ты инженер лучше, чем заводской.',
-                
-                zapovedi: ["ТБ — не догма, а рекомендация.", "Синяя изолента лечит всё.", "Лишняя деталь — это оптимизация.", "Обмыл — значит, закрепил."],
-                inventory: [{name:'К-126 Карбюратор', desc:'На запчасти', owner:'Дядя Юра'}, {name:'Изолента', desc:'Синяя, новая', owner:'Админ'}],
+                holidayTitle: '',
+                todayDate: '',
+                dailyQuote: '',
+                currentPrompt: '',
+                currentJoke: '',
+
+                zapovedi: ["ТБ — не догма.", "Изолента — сила.", "Мат — ускоритель.", "Обмыл — закрепил."],
                 rezba: [{m:'M6', s:'1.0', d:'5.0'}, {m:'M8', s:'1.25', d:'6.8'}, {m:'M10', s:'1.5', d:'8.5'}],
-                
-                sb: null,
+                inventory: [{name:'Трамблер ВАЗ', owner:'Юрич'}, {name:'Набор ключей', owner:'Админ'}],
+
+                prompts: [
+                    "Спроектируй вездеход на базе старой стиральной машины.",
+                    "Напиши инструкцию: как починить коробку передач с помощью магнита и молитвы.",
+                    "Придумай дизайн гаража в стиле киберпанк из СССР."
+                ],
+                jokes: [
+                    "Заходит инженер в бар, а там все работает. Он такой: 'Непорядок!'",
+                    "Купил мужик машину, а она — ведро. Зато синее ведро!",
+                    "Если деталь лишняя — значит, она запасная."
+                ],
 
                 init() {
-                    this.renderIcons();
+                    lucide.createIcons();
                     this.updateCalendar();
+                    this.shufflePrompt();
+                    this.shuffleJoke();
                     this.generateQR();
-                    this.initSupabase();
+                    this.initCloud();
                 },
 
-                setPage(p) {
-                    this.page = p;
-                    this.$nextTick(() => this.renderIcons());
+                setPage(p) { this.page = p; this.$nextTick(() => lucide.createIcons()); },
+
+                updateCalendar() {
+                    const now = new Date();
+                    this.todayDate = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                    const holidays = { "01-01": "Новый Год!", "01-07": "Рождество", "02-23": "День Защитника!", "03-08": "С 8 Марта!", "05-01": "Мир, Труд, Май!", "05-09": "День Победы!", "07-03": "День Независимости РБ!" };
+                    const key = now.toISOString().slice(5, 10);
+                    this.holidayTitle = holidays[key] || "Рабочая смена";
+                    const quotes = ["Работает? Не лезь!", "Семь раз отмерь, один раз отрежь.", "Синяя изолента — залог успеха."];
+                    this.dailyQuote = quotes[now.getDate() % quotes.length];
                 },
 
-                renderIcons() { if (window.lucide) lucide.createIcons(); },
+                shufflePrompt() { this.currentPrompt = this.prompts[Math.floor(Math.random() * this.prompts.length)]; },
+                shuffleJoke() { this.currentJoke = this.jokes[Math.floor(Math.random() * this.jokes.length)]; },
 
-                async initSupabase() {
+                async initCloud() {
                     try {
-                        this.sb = supabase.createClient('https://grsszunlfmehyykkvccj.supabase.co', 'ZTEGCDF4981E');
-                        const { data } = await this.sb.from('artel_messages').select('*').limit(20);
+                        const sb = supabase.createClient('https://grsszunlfmehyykkvccj.supabase.co', 'ZTEGCDF4981E');
+                        const { data } = await sb.from('artel_messages').select('*').limit(20);
                         if (data) this.messages = data;
-                        
-                        this.sb.channel('artel-live').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'artel_messages' }, p => {
-                            this.messages.push(p.new);
-                        }).subscribe();
-                    } catch (e) { console.warn("Supabase Offline"); }
+                    } catch(e) {}
                 },
 
-                async sendMsg() {
-                    if (!this.msg) return;
-                    const m = { username: this.username, text: this.msg };
-                    if (this.sb) await this.sb.from('artel_messages').insert([m]);
-                    else this.messages.push(m);
+                sendMsg() {
+                    if(!this.msg) return;
+                    this.messages.push({username: this.username, text: this.msg});
                     this.msg = '';
                 },
 
                 scanOBD() {
                     const codes = {"P0300": "Пропуски зажигания", "P0171": "Бедная смесь"};
-                    return codes[this.obdQuery.toUpperCase()] || "Код не найден.";
+                    return codes[this.obdQuery.toUpperCase()] || "Код не найден. Проверь синюю изоленту.";
                 },
-
-                updateCalendar() {
-                    const holidays = {"07-03": "День Независимости РБ", "01-01": "Новый Год"};
-                    const day = new Date().toISOString().slice(5,10);
-                    this.currentHoliday = holidays[day] || "Будни в Артели";
-                },
-
-                shufflePrompt() { this.currentPrompt = "Идея: Собери ЧПУ из старого принтера!"; },
-                shuffleJoke() { this.currentJoke = "Вскрытие показало: пациент умер от вскрытия."; },
 
                 generateQR() {
-                    if (window.qrcode) {
-                        const qr = qrcode(0, 'M');
-                        qr.addData(window.location.href);
-                        qr.make();
-                        document.getElementById('qrcode').innerHTML = qr.createImgTag(4);
-                    }
+                    const qr = qrcode(0, 'M');
+                    qr.addData(window.location.href);
+                    qr.make();
+                    document.getElementById('qrcode').innerHTML = qr.createImgTag(4);
                 }
             }));
         });
