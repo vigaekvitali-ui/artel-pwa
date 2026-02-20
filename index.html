@@ -3,304 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0047AB">
-    <link rel="manifest" href="manifest.json">
     <title>Синяя Изолента | Артель Фордова и Бенцова</title>
     
+    <meta name="theme-color" content="#0047AB">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
-        /* --- СИСТЕМА ТЕМ (CSS Variables) --- */
+        /* --- СИСТЕМА ТЕМ --- */
         :root {
-            /* Классика (Синяя изолента) */
-            --primary: #0047AB; --secondary: #C0C0C0; --dark: #333333;
-            --bg: #f4f4f4; --surface: #ffffff; --text: #1a1a1a; --accent: #ff9800;
+            /* Тема: Синяя Изолента (Classic) */
+            --primary: #0047AB; --secondary: #C0C0C0; --bg: #f4f4f4;
+            --surface: #ffffff; --text: #333333; --nixie: #ff5500;
         }
 
-        [data-theme="night"] {
-            --primary: #0047AB; --bg: #1a1a1a; --surface: #2d2d2d; --text: #f5f5f5; --secondary: #4a4a4a;
-        }
-
-        [data-theme="workshop"] {
-            --primary: #0047AB; --bg: #f5f5f5; --surface: #e0e0e0; --text: #333; --secondary: #bdbdbd;
+        [data-theme="dark"] {
+            --primary: #0047AB; --secondary: #2d2d2d; --bg: #1a1a1a;
+            --surface: #262626; --text: #f5f5f5;
         }
 
         [data-theme="rust"] {
-            --primary: #b7410e; --bg: #2d1b0f; --surface: #8b4513; --text: #ffd700; --secondary: #d2691e;
+            --primary: #b7410e; --secondary: #8b4513; --bg: #2d1b0f;
+            --surface: #3d2b1f; --text: #ffd700;
         }
 
         [data-theme="chrome"] {
-            --primary: #404040; --bg: #808080; --surface: #c0c0c0; --text: #000; --secondary: #e0e0e0;
+            --primary: #404040; --secondary: #808080; --bg: #c0c0c0;
+            --surface: #e0e0e0; --text: #000000;
         }
 
-        /* --- ОБЩИЕ СТИЛИ --- */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
-        
-        header { background: var(--primary); color: white; padding: 10px 20px; position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .logo-wrap { display: flex; align-items: center; gap: 10px; }
-        
-        main { padding: 15px; padding-bottom: 80px; max-width: 900px; margin: 0 auto; }
+        /* --- ГЛОБАЛЬНЫЕ СТИЛИ --- */
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0; background-color: var(--bg); color: var(--text);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
 
-        .page { display: none; animation: slideIn 0.3s ease-out; }
-        .page.active { display: block; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        header {
+            background: var(--primary); color: white;
+            padding: 10px 15px; display: flex; align-items: center;
+            justify-content: space-between; position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
 
-        /* --- КОМПОНЕНТЫ --- */
-        .card { background: var(--surface); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; border-left: 8px solid var(--primary); }
-        h2 { margin-top: 0; color: var(--primary); text-transform: uppercase; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .nixie-lamp {
+            width: 20px; height: 20px; background: var(--nixie);
+            border-radius: 50%; box-shadow: 0 0 15px var(--nixie);
+            display: inline-block; animation: flicker 2s infinite;
+        }
 
-        /* КАЛЕНДАРЬ */
-        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .cal-grid { display: grid; grid-template-cols: repeat(7, 1fr); gap: 5px; }
-        .cal-cell { background: var(--bg); aspect-ratio: 1/1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.9rem; position: relative; cursor: pointer; transition: 0.2s; border: 1px solid var(--secondary); }
-        .cal-cell.today { border: 2px solid var(--primary); background: var(--surface); font-weight: bold; transform: scale(1.05); }
-        .cal-cell.holiday { color: #e53935; }
-        .cal-day-label { font-size: 0.6rem; text-transform: uppercase; opacity: 0.7; margin-bottom: 5px; }
-        .cal-note-indicator { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; position: absolute; bottom: 5px; }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.6; }
+            52% { opacity: 0.9; } 54% { opacity: 0.4; }
+        }
 
-        /* ТАБЛИЦЫ */
-        .scroll-box { overflow-x: auto; border-radius: 8px; border: 1px solid var(--secondary); }
-        table { width: 100%; border-collapse: collapse; background: var(--surface); min-width: 500px; }
-        th { background: var(--primary); color: white; padding: 12px; text-align: left; font-size: 0.8rem; }
-        td { padding: 12px; border-bottom: 1px solid var(--secondary); font-size: 0.9rem; }
+        /* --- СЕТКА И СТРАНИЦЫ --- */
+        main { padding: 15px; padding-bottom: 90px; }
+        .page { display: none; max-width: 800px; margin: 0 auto; }
+        .page.active { display: block; animation: slideUp 0.4s ease-out; }
 
-        /* НАВИГАЦИЯ */
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--primary); z-index: 1000; }
-        .nav-item { background: none; border: none; color: var(--text); opacity: 0.5; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; }
-        .nav-item.active { opacity: 1; color: var(--primary); transform: translateY(-5px); }
-        .nav-item i { font-size: 1.5rem; margin-bottom: 4px; font-style: normal; }
-        .nav-item span { font-size: 0.6rem; font-weight: bold; }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
 
-        /* ЧАТ */
-        #chat-window { height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 0.9rem; }
-        .msg.sent { align-self: flex-end; background: var(--primary); color: white; }
-        .msg.received { align-self: flex-start; background: var(--bg); border: 1px solid var(--secondary); }
+        .card {
+            background: var(--surface); border-radius: 12px;
+            padding: 15px; margin-bottom: 15px;
+            box-shadow: 4px 4px 0px var(--secondary);
+            border: 2px solid var(--secondary);
+        }
 
-        /* ИНТЕРФЕЙСНЫЕ ЭЛЕМЕНТЫ */
-        input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--secondary); background: var(--bg); color: var(--text); box-sizing: border-box; }
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        /* --- КАЛЕНДАРЬ --- */
+        .calendar-grid {
+            display: grid; grid-template-cols: repeat(7, 1fr);
+            gap: 5px; text-align: center;
+        }
+        .cal-day {
+            aspect-ratio: 1/1; display: flex; align-items: center;
+            justify-content: center; background: var(--bg);
+            border-radius: 6px; font-weight: bold; font-size: 0.9em;
+            position: relative; cursor: pointer;
+        }
+        .cal-day.today { background: var(--primary); color: white; }
+        .cal-day.holiday { color: #ff4444; }
+        .cal-day::after {
+            content: ''; position: absolute; bottom: 4px;
+            width: 4px; height: 4px; background: var(--primary);
+            border-radius: 50%; display: none;
+        }
+        .cal-day.has-note::after { display: block; }
+
+        /* --- КНОПКИ --- */
+        .btn-пуск {
+            background: var(--primary); color: white;
+            border: none; padding: 12px 24px; border-radius: 8px;
+            font-weight: bold; text-transform: uppercase;
+            cursor: pointer; width: 100%; box-shadow: 0 4px 0 #002d6d;
+        }
+        .btn-пуск:active { transform: translateY(2px); box-shadow: 0 2px 0 #002d6d; }
+
+        .btn-гостно {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--secondary); padding: 8px 12px;
+            border-radius: 20px; font-size: 0.8em; cursor: pointer;
+        }
+
+        /* --- НАВИГАЦИЯ --- */
+        nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: var(--surface); display: flex;
+            justify-content: space-around; padding: 10px 0;
+            border-top: 3px solid var(--primary); z-index: 1001;
+        }
+        .nav-item {
+            font-size: 1.5em; color: var(--text); opacity: 0.5;
+            transition: 0.3s; cursor: pointer;
+        }
+        .nav-item.active { opacity: 1; color: var(--primary); transform: scale(1.2); }
+
+        /* --- ТАБЛИЦЫ --- */
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        .ref-table th { background: var(--primary); color: white; padding: 8px; text-align: left; }
+        .ref-table td { border-bottom: 1px solid var(--secondary); padding: 8px; }
+
     </style>
 </head>
 <body data-theme="classic">
 
 <header>
-    <div class="logo-wrap">
-        <div id="app-logo">
-            <svg width="40" height="40" viewBox="0 0 100 100">
-                <rect x="10" y="30" width="80" height="40" rx="5" fill="white" transform="rotate(-10 50 50)"/>
-                <text x="50" y="65" font-family="Arial Black" font-size="30" fill="#0047AB" text-anchor="middle" transform="rotate(-10 50 50)">Si</text>
-            </svg>
-        </div>
-        <div>
-            <div style="font-weight: bold; font-size: 1rem;">СИНЯЯ ИЗОЛЕНТА</div>
-            <div style="font-size: 0.6rem; opacity: 0.8;">Артель Фордова и Бенцова</div>
-        </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <svg id="logo" width="40" height="40" viewBox="0 0 100 100">
+            <rect x="10" y="35" width="80" height="30" fill="white" rx="4" transform="rotate(-15 50 50)"/>
+            <path d="M10 50 Q50 20 90 50" stroke="white" stroke-width="8" fill="none" opacity="0.5"/>
+            <text x="50" y="58" font-family="Arial Black" font-size="20" fill="#0047AB" text-anchor="middle" transform="rotate(-15 50 50)">Si</text>
+        </svg>
+        <span style="font-weight: 900; letter-spacing: 1px;">АРТЕЛЬ</span>
     </div>
-    <div id="offline-indicator" style="display:none; background: #e53935; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem;">ОФФЛАЙН</div>
+    <div>
+        <span class="nixie-lamp" id="notif-lamp"></span>
+    </div>
 </header>
 
 <main>
-    <section id="page-calendar" class="page active">
+    <section id="page-1" class="page active">
         <div class="card">
-            <div class="cal-header">
-                <button onclick="changeMonth(-1)" class="btn-primary" style="padding: 5px 15px;">◀</button>
-                <h3 id="month-name" style="margin:0; color: var(--primary)">Февраль 2026</h3>
-                <button onclick="changeMonth(1)" class="btn-primary" style="padding: 5px 15px;">▶</button>
-            </div>
-            <div class="cal-grid" id="calendar-body">
+            <h2 id="cal-month-name">Февраль 2026</h2>
+            <div class="calendar-grid" id="calendar-body">
                 </div>
         </div>
-        <div class="card" style="border-left-color: var(--accent);">
-            <div id="daily-quote" style="font-style: italic; font-size: 0.9rem;">
-                "Если деталь не лезет — возьми молоток побольше." (Закон Мёрфи)
+        <div class="card" style="border-left: 5px solid var(--primary);">
+            <small id="quote-type">ЗАКОН МЕРФИ:</small>
+            <p id="daily-quote" style="font-style: italic; margin-top: 5px;"></p>
+        </div>
+    </section>
+
+    <section id="page-2" class="page">
+        <div class="card" id="chat-box" style="height: 60vh; overflow-y: auto;">
             </div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <input type="text" id="chat-input" placeholder="Пиши по делу..." style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid var(--secondary);">
+            <button class="btn-пуск" id="send-btn" style="width: auto;">ПУСК</button>
         </div>
     </section>
 
-    <section id="page-chat" class="page">
+    <section id="page-4" class="page">
         <div class="card">
-            <h2>💬 Групповой чат</h2>
-            <div id="chat-window"></div>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="chat-input" placeholder="Введите сообщение...">
-                <button class="btn-primary" onclick="sendMessage()">ПУСК</button>
-            </div>
+            <h3>🔩 Резьба (Метрическая)</h3>
+            <table class="ref-table">
+                <tr><th>Размер</th><th>Шаг</th><th>Сверло</th></tr>
+                <tr><td>M6</td><td>1.0</td><td>5.0</td></tr>
+                <tr><td>M8</td><td>1.25</td><td>6.8</td></tr>
+                <tr><td>M10</td><td>1.5</td><td>8.5</td></tr>
+                <tr><td>M12</td><td>1.75</td><td>10.2</td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <h3>🔵 Подшипники (Серия 200)</h3>
+            <table class="ref-table">
+                <tr><th>№</th><th>d (мм)</th><th>D (мм)</th><th>B (мм)</th></tr>
+                <tr><td>201</td><td>12</td><td>32</td><td>10</td></tr>
+                <tr><td>204</td><td>20</td><td>47</td><td>14</td></tr>
+                <tr><td>205</td><td>25</td><td>52</td><td>15</td></tr>
+            </table>
         </div>
     </section>
 
-    <section id="page-stock" class="page">
+    <section id="page-8" class="page">
         <div class="card">
-            <h2>📦 Склад под верстаком</h2>
-            <div id="stock-items"></div>
-            <button class="btn-primary" style="width:100%; margin-top:10px;">ДОБАВИТЬ ЗАПЧАСТЬ</button>
-        </div>
-    </section>
-
-    <section id="page-ref" class="page">
-        <div class="card">
-            <h2>⚙️ Метрические резьбы</h2>
-            <div class="scroll-box">
-                <table>
-                    <thead>
-                        <tr><th>Резьба</th><th>Шаг</th><th>Сверло (мм)</th><th>Газовый ключ</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>M3</td><td>0.5</td><td>2.5</td><td>№0</td></tr>
-                        <tr><td>M6</td><td>1.0</td><td>5.0</td><td>№1</td></tr>
-                        <tr><td>M8</td><td>1.25</td><td>6.8</td><td>№1</td></tr>
-                        <tr><td>M12</td><td>1.75</td><td>10.2</td><td>№2</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <section id="page-ai" class="page">
-        <div class="card">
-            <h2>🤖 AI Ресурсы</h2>
+            <h3>ЦВЕТОВАЯ СХЕМА</h3>
             <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 10px;">
-                <button class="btn-primary" onclick="window.open('https://gemini.google.com')">Gemini</button>
-                <button class="btn-primary" onclick="window.open('https://canva.com')">Canva</button>
-                <button class="btn-primary" onclick="window.open('https://notebooklm.google.com')">NotebookLM</button>
+                <button onclick="setTheme('classic')" class="btn-пуск" style="background:#0047AB">ИЗОЛЕНТА</button>
+                <button onclick="setTheme('dark')" class="btn-пуск" style="background:#1a1a1a">НОЧЬ</button>
+                <button onclick="setTheme('rust')" class="btn-пуск" style="background:#b7410e">РЖАВЧИНА</button>
+                <button onclick="setTheme('chrome')" class="btn-пуск" style="background:#808080">ХРОМ</button>
             </div>
         </div>
         <div class="card">
-            <h2>🧠 Промты</h2>
-            <div style="font-size: 0.8rem; background: var(--bg); padding: 10px; border-radius: 5px;">
-                "Составь алгоритм диагностики системы охлаждения, если термостат заклинило в малом круге..."
-            </div>
-        </div>
-    </section>
-
-    <section id="page-humor" class="page">
-        <div class="card">
-            <h2>😂 Юмор</h2>
-            <p>Механик — это врач, пациенты которого не могут пожаловаться, но зато могут переехать его при попытке лечения.</p>
-        </div>
-    </section>
-
-    <section id="page-settings" class="page">
-        <div class="card">
-            <h2>⚙️ Настройки тем</h2>
-            <select id="theme-selector" onchange="setTheme(this.value)">
-                <option value="classic">Синяя изолента</option>
-                <option value="night">Ночной режим</option>
-                <option value="workshop">Светлая мастерская</option>
-                <option value="rust">Ржавчина</option>
-                <option value="chrome">Хром</option>
-            </select>
-        </div>
-        <div class="card">
-            <h2>🔗 Подключение</h2>
-            <div id="qrcode" style="display:flex; justify-content:center; margin-bottom: 10px;"></div>
-            <p style="font-size: 0.7rem; text-align:center;">Отсканируй, чтобы добавить напарника</p>
+            <h3>ПОДКЛЮЧИТЬ УСТРОЙСТВО</h3>
+            <div id="qrcode" style="display: flex; justify-content: center; padding: 10px;"></div>
+            <p style="text-align: center; font-size: 0.8em;">ID Твоей Артели: <b id="artel-id-display">---</b></p>
         </div>
     </section>
 </main>
 
 <nav>
-    <button class="nav-item active" onclick="navTo('calendar')"><i>📅</i><span>КАЛ</span></button>
-    <button class="nav-item" onclick="navTo('chat')"><i>💬</i><span>ЧАТ</span></button>
-    <button class="nav-item" onclick="navTo('stock')"><i>📦</i><span>СКЛАД</span></button>
-    <button class="nav-item" onclick="navTo('ref')"><i>⚙️</i><span>СПР</span></button>
-    <button class="nav-item" onclick="navTo('ai')"><i>🤖</i><span>AI</span></button>
-    <button class="nav-item" onclick="navTo('settings')"><i>🛠</i><span>УСТ</span></button>
+    <div class="nav-item active" onclick="showPage(1)">📅</div>
+    <div class="nav-item" onclick="showPage(2)">💬</div>
+    <div class="nav-item" onclick="showPage(3)">📦</div>
+    <div class="nav-item" onclick="showPage(4)">⚙️</div>
+    <div class="nav-item" onclick="showPage(8)">🛠</div>
 </nav>
 
 <script>
-    // --- ДАННЫЕ ПРИЛОЖЕНИЯ ---
-    const holidays = {
-        "01-01": "Новый год", "01-07": "Рождество", "03-08": "8 Марта",
-        "05-01": "День Труда", "05-09": "День Победы", "07-03": "День Независимости",
-        "11-07": "Октябрьская революция", "12-25": "Рождество (к)"
+    // --- ДАННЫЕ И БАЗЫ ---
+    const holidaysBY = {
+        "01-01": "Новый Год", "01-07": "Рождество", "03-08": "8 Марта",
+        "05-01": "Праздник Труда", "05-09": "День Победы", "07-03": "День Независимости",
+        "11-07": "Окт. Революция", "12-25": "Рождество (К)"
     };
 
-    const quotes = [
-        "Если работает — не трогай.",
-        "Бритва Оккама: не следует множить сущности без необходимости.",
-        "Синяя изолента — универсальный клей. Если не держит — значит, мало мотал.",
-        "Закон Мёрфи: Всё, что может пойти не так, пойдет не так.",
-        "Второй закон Чизхолма: Когда дела идут хорошо, что-то должно случиться в самое ближайшее время."
+    const murphyQuotes = [
+        "Если деталь не лезет — возьми молоток побольше.",
+        "Всё, что может пойти не так, пойдет не так.",
+        "Из двух решений выбирай самое простое (Оккам).",
+        "Чистые руки — признак того, что ты ничего не делал.",
+        "Лишняя деталь — это запасная деталь."
     ];
 
     // --- ЛОГИКА КАЛЕНДАРЯ ---
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
-
-    function renderCalendar() {
-        const grid = document.getElementById('calendar-body');
-        const monthTitle = document.getElementById('month-name');
-        grid.innerHTML = '';
-
-        const d = new Date(currentYear, currentMonth);
-        monthTitle.innerText = d.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
-
-        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-        const startingPoint = firstDay === 0 ? 6 : firstDay - 1;
-
-        // Пустые ячейки
-        for(let i=0; i < startingPoint; i++) grid.innerHTML += '<div></div>';
-
-        for(let day=1; day <= daysInMonth; day++) {
-            const dateStr = `${String(currentMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            const isToday = day === new Date().getDate() && currentMonth === new Date().getMonth();
-            const holiday = holidays[dateStr];
+    function initCalendar() {
+        const body = document.getElementById('calendar-body');
+        const now = new Date();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        
+        body.innerHTML = '';
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dateStr = `${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const isHoliday = holidaysBY[dateStr];
+            const isToday = i === now.getDate();
             
-            grid.innerHTML += `
-                <div class="cal-cell ${isToday ? 'today' : ''} ${holiday ? 'holiday' : ''}" onclick="addNote(${day})">
-                    <span class="cal-day-label">${day}</span>
-                    ${holiday ? `<span style="font-size:0.4rem; text-align:center;">${holiday}</span>` : ''}
-                </div>`;
+            const dayEl = document.createElement('div');
+            dayEl.className = `cal-day ${isToday ? 'today' : ''} ${isHoliday ? 'holiday' : ''}`;
+            dayEl.innerText = i;
+            if (isHoliday) dayEl.title = isHoliday;
+            body.appendChild(dayEl);
         }
+        document.getElementById('daily-quote').innerText = murphyQuotes[Math.floor(Math.random() * murphyQuotes.length)];
     }
 
-    // --- НАВИГАЦИЯ ---
-    function navTo(pageId) {
+    // --- СИСТЕМА СИНХРОНИЗАЦИИ (MOCK/Firebase) ---
+    // В реальном проекте здесь инициализируется Firebase
+    let artelID = localStorage.getItem('artel_id') || Math.random().toString(36).substring(7);
+    localStorage.setItem('artel_id', artelID);
+    document.getElementById('artel-id-display').innerText = artelID.toUpperCase();
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: window.location.href + "?join=" + artelID,
+        width: 128, height: 128
+    });
+
+    // --- ИНТЕРФЕЙС ---
+    function showPage(n) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('page-' + pageId).classList.add('active');
-        event.currentTarget.classList.add('active');
-        if(pageId === 'settings') generateQR();
+        document.getElementById(`page-${n}`).classList.add('active');
+        document.querySelectorAll('.nav-item')[n-1 === 7 ? 4 : n-1].classList.add('active');
     }
 
-    // --- ФУНКЦИИ ИНТЕРФЕЙСА ---
-    function setTheme(theme) {
-        document.body.setAttribute('data-theme', theme);
-        localStorage.setItem('tape-theme', theme);
+    function setTheme(t) {
+        document.body.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
     }
 
-    function generateQR() {
-        const qrBox = document.getElementById('qrcode');
-        qrBox.innerHTML = '';
-        new QRCode(qrBox, { text: window.location.href, width: 128, height: 128 });
-    }
-
-    function changeMonth(dir) {
-        currentMonth += dir;
-        if(currentMonth > 11) { currentMonth = 0; currentYear++; }
-        if(currentMonth < 0) { currentMonth = 11; currentYear--; }
-        renderCalendar();
-    }
-
-    // --- ОФФЛАЙН ЛОГИКА ---
-    window.addEventListener('online', () => document.getElementById('offline-indicator').style.display = 'none');
-    window.addEventListener('offline', () => document.getElementById('offline-indicator').style.display = 'block');
+    // Офлайн режим
+    window.addEventListener('online', () => document.getElementById('notif-lamp').style.background = 'var(--nixie)');
+    window.addEventListener('offline', () => document.getElementById('notif-lamp').style.background = '#333');
 
     // Инициализация
     window.onload = () => {
-        renderCalendar();
-        const savedTheme = localStorage.getItem('tape-theme');
-        if(savedTheme) setTheme(savedTheme);
-        document.getElementById('daily-quote').innerText = quotes[Math.floor(Math.random() * quotes.length)];
-        
-        // Регистрация SW
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered"));
-        }
+        initCalendar();
+        setTheme(localStorage.getItem('theme') || 'classic');
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     };
 </script>
 </body>
