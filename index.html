@@ -2,153 +2,111 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>АРТЕЛЬ v3.0 REAL-TIME</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АРТЕЛЬ v3.0 FINAL</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
     <style>
         [x-cloak] { display: none !important; }
         :root { --blue: #0047ab; --neon: #ff5e00; --bg: #0a0a0a; --text: #bdc3c7; }
         .theme-modern { --blue: #00f2ff; --neon: #00ff41; --bg: #050505; }
         .theme-retro { --blue: #5d4037; --neon: #ff9800; --bg: #1a1a1a; }
-        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
+        
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; overflow-x: hidden; }
+        header { padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); background: #000; color: var(--neon); font-weight: bold; }
+        
         .page { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
         .active { display: block !important; }
-        .gost-card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 12px; margin-bottom: 10px; border-left: 5px solid var(--blue); }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue); z-index: 1000; }
+        
+        .gost-card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; margin-bottom: 10px; border-left: 5px solid var(--blue); }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue); z-index: 9999; }
         .nav-item { color: #444; cursor: pointer; }
         .nav-item.active { color: var(--neon); transform: scale(1.2); }
-        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 5px 0; }
-        input, select { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid var(--blue); box-sizing: border-box; }
-        .rank-label { font-size: 0.6rem; padding: 2px 5px; border: 1px solid var(--neon); color: var(--neon); margin-left: 5px; }
-        .zone { border: 1px solid var(--blue); padding: 15px; margin-bottom: 15px; text-align: center; }
+        
+        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; margin: 5px 0; }
+        input { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid var(--blue); box-sizing: border-box; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th, td { border: 1px solid #333; padding: 8px; }
+        th { background: var(--blue); }
+        .zone { border: 1px solid var(--blue); padding: 15px; margin-bottom: 10px; text-align: center; }
     </style>
 </head>
-<body x-data="artelApp" :class="theme" x-init="initApp()">
+<body x-data="artelApp" :class="theme" x-init="init()">
 
-<header style="padding:15px; text-align:center; border-bottom:2px solid var(--blue); background:#000;">
-    <div style="color:var(--neon); font-weight:bold;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</div>
-</header>
+<header>🛠 АРТЕЛЬ ФОРДОВА И БЕНЦОВА 🛠</header>
 
-<div class="page" :class="{'active': p === 1}">
-    <div class="gost-card">
-        <h3 style="margin:0; color:var(--neon)" x-text="holiday"></h3>
-        <p x-text="murphy"></p>
+<div id="loader" style="text-align:center; padding:50px; color:var(--neon);">ЗАГРУЗКА СИСТЕМЫ...</div>
+
+<div x-cloak :class="{'active': true}" style="display:none;" x-show="true">
+    <div class="page" :class="{'active': p === 1}">
+        <div class="gost-card"><h3 x-text="holiday"></h3><p x-text="murphy"></p></div>
+        <div class="gost-card"><strong>📜 УСТАВ:</strong><br><template x-for="z in zapovedi"><div style="margin-top:5px;" x-text="z"></div></template></div>
     </div>
-    <div class="gost-card">
-        <strong>📜 10 ЗАПОВЕДЕЙ</strong>
-        <div style="font-size:0.75rem; margin-top:5px;">
-            <template x-for="(z, i) in zapovedi">
-                <div x-text="(i+1) + '. ' + z" style="margin-bottom:3px"></div>
-            </template>
-        </div>
-    </div>
-</div>
 
-<div class="page" :class="{'active': p === 2}">
-    <template x-if="!isReg">
-        <div class="gost-card">
-            <h3>РЕГИСТРАЦИЯ</h3>
-            <input type="text" x-model="userName" placeholder="Позывной...">
-            <button class="btn-pusker" @click="register()">ВХОД</button>
-        </div>
-    </template>
-    <template x-if="isReg">
-        <div>
-            <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000; margin-bottom:10px;">
-                <template x-for="m in msgs">
-                    <div style="margin-bottom:10px; border-left:2px solid var(--blue); padding-left:8px;">
-                        <span style="font-weight:bold; color:var(--neon)" x-text="m.username"></span>
-                        <span class="rank-label" x-text="m.rank"></span>
-                        <div x-text="m.text"></div>
-                    </div>
-                </template>
-            </div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" x-model="newM" @keyup.enter="sendM()" placeholder="Приём...">
-                <button @click="sendM()" class="btn-pusker" style="width:80px; margin:0;">ПУСК</button>
-            </div>
-        </div>
-    </template>
-</div>
-
-<div class="page" :class="{'active': p === 3}">
-    <h3 style="color:var(--neon)">ЯЩИКИ (ОБЩИЕ)</h3>
-    <div class="gost-card">
-        <input type="text" x-model="boxNote" placeholder="Запись или ссылка на файл...">
-        <button class="btn-pusker" @click="saveBox()">СОХРАНИТЬ В БАЗУ</button>
-    </div>
-    <div class="gost-card">
-        <template x-for="item in boxItems">
-            <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;">
-                <span x-text="item.content"></span>
-                <button @click="deleteBox(item.id)" style="color:red; background:none; border:none;">[X]</button>
+    <div class="page" :class="{'active': p === 2}">
+        <template x-if="!isReg">
+            <div class="gost-card"><input type="text" x-model="userName" placeholder="Позывной..."><button class="btn-pusker" @click="register()">ВХОД</button></div>
+        </template>
+        <template x-if="isReg">
+            <div>
+                <div id="chat" style="height:300px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000;">
+                    <template x-for="m in msgs">
+                        <div style="margin-bottom:8px;"><b style="color:var(--neon)" x-text="m.username"></b>: <span x-text="m.text"></span></div>
+                    </template>
+                </div>
+                <div style="display:flex; margin-top:10px;"><input type="text" x-model="newM" @keyup.enter="sendM()"><button @click="sendM()" class="btn-pusker" style="width:80px; margin:0;">ОК</button></div>
             </div>
         </template>
     </div>
-</div>
 
-<div class="page" :class="{'active': p === 4}">
-    <input type="text" x-model="q" placeholder="Поиск (Подшипник, OBD)...">
-    <div style="margin-top:10px;">
-        <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
-            <thead><tr style="background:var(--blue)"><th>Тип</th><th>Данные</th></tr></thead>
+    <div class="page" :class="{'active': p === 3}">
+        <div class="gost-card"><input type="text" x-model="boxNote" placeholder="В ящик..."><button class="btn-pusker" @click="saveBox()">СОХРАНИТЬ</button></div>
+        <div class="gost-card"><template x-for="b in boxItems"><div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #222;"><span x-text="b.content"></span><button @click="deleteBox(b.id)" style="color:red; background:none; border:none;">[X]</button></div></template></div>
+    </div>
+
+    <div class="page" :class="{'active': p === 4}">
+        <input type="text" x-model="q" placeholder="Поиск техданных...">
+        <table>
+            <thead><tr><th>Деталь</th><th>Размер</th></tr></thead>
             <tbody>
                 <template x-for="i in tech.filter(x => x.n.includes(q))">
-                    <tr><td style="border:1px solid #333; padding:5px" x-text="i.n"></td><td style="border:1px solid #333; padding:5px; color:var(--neon)" x-text="i.v"></td></tr>
+                    <tr><td x-text="i.n"></td><td style="color:var(--neon)" x-text="i.v"></td></tr>
                 </template>
             </tbody>
         </table>
     </div>
-</div>
 
-<div class="page" :class="{'active': p === 5}">
-    <h3 style="color:var(--neon)">ИНЖЕНЕРНЫЕ ПРОМТЫ</h3>
-    <div class="gost-card">
-        <p>Используй "Промт Ковбой" для точной настройки ИИ под гаражные задачи.</p>
-        <a href="https://promptcowboy.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">ОТКРЫТЬ КОВБОЯ</a>
+    <div class="page" :class="{'active': p === 5}">
+        <div class="gost-card"><h3>ПРОМТЫ</h3><a href="https://promptcowboy.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">КОВБОЙ</a></div>
     </div>
-</div>
 
-<div class="page" :class="{'active': p === 6}">
-    <h3 style="color:var(--neon)">СЕРВИСЫ (НУЖЕН VPN)</h3>
-    <template x-for="l in links">
-        <a :href="l.u" target="_blank" class="gost-card" style="display:block; text-decoration:none; color:inherit; text-align:center;" x-text="l.n"></a>
-    </template>
-</div>
+    <div class="page" :class="{'active': p === 6}">
+        <template x-for="l in links"><a :href="l.u" target="_blank" class="gost-card" style="display:block; text-align:center; text-decoration:none; color:#fff;" x-text="l.n"></a></template>
+    </div>
 
-<div class="page" :class="{'active': p === 7}">
-    <div class="zone">
-        <div style="color:var(--neon)">АРТЕЛЬНЫЙ ТАБАК</div>
-        <a href="https://onliner.by" target="_blank" style="color:#fff">Новости Беларуси</a>
+    <div class="page" :class="{'active': p === 7}">
+        <div class="zone"><b>ТАБАК АРТЕЛИ</b><br><a href="https://onliner.by" style="color:var(--neon)">Новости РБ</a></div>
+        <div class="zone"><b>КОФЕ АРТЕЛИ</b><br><a href="https://e-lib.belstu.by" style="color:var(--neon)">Библиотека</a></div>
+        <div class="zone"><b>ВИСКИ АРТЕЛИ</b><br><a href="http://radiopotok.ru" style="color:var(--neon)">Радио</a></div>
     </div>
-    <div class="zone">
-        <div style="color:var(--neon)">АРТЕЛЬНЫЙ КОФЕ</div>
-        <a href="https://e-lib.belstu.by" target="_blank" style="color:#fff">Библиотека БГТУ</a>
-    </div>
-    <div class="zone">
-        <div style="color:var(--neon)">ВИСКЪ "АРТЕЛЬНЫЙ"</div>
-        <a href="http://radiopotok.ru" target="_blank" style="color:#fff">Радио и Музыка</a>
-    </div>
-</div>
 
-<div class="page" :class="{'active': p === 8}">
-    <h3 style="color:var(--neon)">НАСТРОЙКИ</h3>
-    <div class="gost-card">
-        ТЕМЫ:<br>
-        <button class="btn-pusker" @click="theme=''">ЗАВОД</button>
-        <button class="btn-pusker" @click="theme='theme-modern'">НЕОН</button>
-        <button class="btn-pusker" @click="theme='theme-retro'">РЕТРО</button>
-    </div>
-    <div class="gost-card" style="text-align:center; background:#fff;">
-        <div id="qrcode"></div>
+    <div class="page" :class="{'active': p === 8}">
+        <div class="gost-card">
+            <button class="btn-pusker" @click="theme=''">ЗАВОД</button>
+            <button class="btn-pusker" @click="theme='theme-modern'">НЕОН</button>
+            <button class="btn-pusker" @click="theme='theme-retro'">РЕТРО</button>
+        </div>
+        <div class="gost-card" style="text-align:center; background:#fff;"><div id="qrcode"></div></div>
     </div>
 </div>
 
 <nav class="nav-bar">
     <template x-for="(ic, i) in ['home','message-square','package','wrench','brain','zap','coffee','settings']">
-        <div class="nav-item" :class="{'active': p === (i+1)}" @click="p=(i+1); ref()">
+        <div class="nav-item" :class="{'active': p === (i+1)}" @click="p=(i+1); refreshIcons()">
             <i :data-lucide="ic"></i>
         </div>
     </template>
@@ -157,63 +115,46 @@
 <script>
     const _URL = 'https://grsszunlfmehyykkvccj.supabase.co';
     const _KEY = 'sb_publishable_lOjqRJ2R_tHLo0GiLPjaYA_6UYCfCaX';
-    const supabase = window.supabase ? window.supabase.createClient(_URL, _KEY) : null;
+    let db = null;
+    try { db = supabase.createClient(_URL, _KEY); } catch(e) {}
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            p: 1, theme: localStorage.getItem('theme') || '',
+            p: 1, theme: '', q: '', 
             isReg: localStorage.getItem('reg') || false,
             userName: localStorage.getItem('user') || '',
-            userRank: localStorage.getItem('rank') || 'Личинка инженера',
-            newM: '', msgs: [], boxNote: '', boxItems: [], q: '',
-            holiday: 'Будни Артели', murphy: 'Гайка всегда падает в самое недоступное место.',
-            zapovedi: ['Не лезь в работающий механизм','Изолента — венец творения','Мат ускоряет ремонт'],
-            tech: [{n:'Подшипник 203', v:'17x40x12'}, {n:'OBD P0300', v:'Пропуски зажигания'}],
-            links: [{n:'Gemini', u:'https://gemini.google.com'}, {n:'Suno', u:'https://suno.com'}],
+            msgs: [], boxItems: [], newM: '', boxNote: '',
+            holiday: 'Смена: ' + new Date().toLocaleDateString(),
+            murphy: 'Если механизм работает — не трогай его.',
+            zapovedi: ['1. Изолента — сила','2. Мат — это ускорение','3. Лишних деталей нет'],
+            tech: [{n:'Подшипник 203', v:'17x40x12'}, {n:'M10', v:'Шаг 1.5'}, {n:'OBD P0300', v:'Свечи'}],
+            links: [{n:'Gemini AI', u:'https://gemini.google.com'},{n:'Suno Music', u:'https://suno.com'}],
 
-            async initApp() {
+            init() {
+                document.getElementById('loader').style.display = 'none';
                 lucide.createIcons();
                 this.genQR();
-                if(supabase) {
-                    this.fetchMsgs();
-                    this.fetchBox();
-                    supabase.channel('room1').on('postgres_changes', {event:'*', schema:'public'}, () => {
-                        this.fetchMsgs(); this.fetchBox();
-                    }).subscribe();
+                if(db) {
+                    this.loadData();
+                    db.channel('any').on('postgres_changes', {event:'*', schema:'public'}, () => this.loadData()).subscribe();
                 }
             },
-            ref() { setTimeout(() => lucide.createIcons(), 50); },
-            register() {
-                if(this.userName) {
-                    this.isReg = true;
-                    localStorage.setItem('reg', true);
-                    localStorage.setItem('user', this.userName);
-                }
+            refreshIcons() { setTimeout(() => lucide.createIcons(), 50); },
+            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg', true); localStorage.setItem('user', this.userName); }},
+            async loadData() {
+                const {data:m} = await db.from('messages').select('*').order('id',{ascending:false}).limit(20);
+                if(m) this.msgs = m.reverse();
+                const {data:b} = await db.from('boxes').select('*');
+                if(b) this.boxItems = b;
             },
-            async fetchMsgs() {
-                const {data} = await supabase.from('messages').select('*').order('id', {ascending:false}).limit(20);
-                if(data) this.msgs = data.reverse();
-            },
-            async sendM() {
-                if(!this.newM) return;
-                await supabase.from('messages').insert([{username:this.userName, text:this.newM, rank:this.userRank}]);
-                this.newM = '';
-            },
-            async fetchBox() {
-                const {data} = await supabase.from('boxes').select('*');
-                if(data) this.boxItems = data;
-            },
-            async saveBox() {
-                if(!this.boxNote) return;
-                await supabase.from('boxes').insert([{content:this.boxNote, user_name:this.userName}]);
-                this.boxNote = '';
-            },
-            async deleteBox(id) {
-                await supabase.from('boxes').delete().eq('id', id);
-            },
-            genQR() {
-                const qr = qrcode(0, 'M'); qr.addData(window.location.href); qr.make();
-                document.getElementById('qrcode').innerHTML = qr.createImgTag(3);
+            async sendM() { if(!this.newM) return; await db.from('messages').insert([{username:this.userName, text:this.newM}]); this.newM = ''; },
+            async saveBox() { if(!this.boxNote) return; await db.from('boxes').insert([{content:this.boxNote, user_name:this.userName}]); this.boxNote = ''; },
+            async deleteBox(id) { await db.from('boxes').delete().eq('id', id); },
+            genQR() { 
+                try {
+                    const qr = qrcode(0, 'M'); qr.addData(window.location.href); qr.make();
+                    document.getElementById('qrcode').innerHTML = qr.createImgTag(4);
+                } catch(e) {}
             }
         }));
     });
