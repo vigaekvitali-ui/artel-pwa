@@ -2,253 +2,240 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>АРТЕЛЬ ФОРДОВА И БЕНЦОВА</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АРТЕЛЬ ФОРДОВА И БЕНЦОВА v3.0</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
         [x-cloak] { display: none !important; }
-        :root { --blue: #0047ab; --steel: #bdc3c7; --oil: #0a0a0a; --neon: #ff5e00; }
+        :root { --blue: #0047ab; --neon: #ff5e00; --bg: #0a0a0a; --text: #bdc3c7; }
         
-        body { 
-            background: var(--oil); color: var(--steel); 
-            font-family: 'Courier New', monospace; margin: 0; padding-bottom: 80px; 
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* Стили тем */
+        .theme-modern { --blue: #00f2ff; --neon: #7000ff; --bg: #050505; }
+        .theme-retro { --blue: #8b4513; --neon: #cd7f32; --bg: #1a1410; }
 
-        header { 
-            background: #000; padding: 15px; text-align: center; 
-            border-bottom: 2px solid var(--blue); position: sticky; top: 0; z-index: 100; 
-        }
-
-        .in-14 { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-weight: bold; }
-
-        /* Логика отображения страниц - теперь железно */
-        .page { display: none; padding: 15px; min-height: 80vh; }
-        .page.active { display: block !important; }
-
-        .gost-card { 
-            border: 1px solid var(--blue); background: rgba(0,71,171,0.1); 
-            padding: 12px; margin-bottom: 10px; border-left: 5px solid var(--blue); 
-        }
-
-        .nav-bar { 
-            position: fixed; bottom: 0; width: 100%; background: #000; 
-            display: flex; justify-content: space-around; padding: 15px 0; 
-            border-top: 2px solid var(--blue); z-index: 1000; 
-        }
-
-        .nav-item { color: #444; cursor: pointer; transition: 0.2s; }
-        .nav-item.active { color: var(--neon); transform: scale(1.2); }
-
-        .btn-pusker { 
-            background: var(--blue); color: white; border: none; 
-            padding: 12px; cursor: pointer; width: 100%; font-weight: bold; 
-            margin-top: 10px; text-transform: uppercase;
-        }
-
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
-        .day-box { padding: 5px; font-size: 0.8rem; border: 1px solid #222; }
-        .today { background: var(--neon); color: #000; font-weight: bold; }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
+        .page { display: none; padding: 15px; }
+        .active { display: block !important; }
         
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+        .gost-card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 12px; margin-bottom: 10px; border-left: 5px solid var(--blue); }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue); z-index: 1000; }
+        .nav-item { color: #444; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--neon); }
+
+        .zone { border-bottom: 2px dashed var(--blue); padding: 20px 0; text-align: center; }
+        .zone img { width: 150px; height: 150px; border: 1px solid var(--blue); margin-bottom: 10px; filter: grayscale(1); }
+        
+        .btn-pusker { background: var(--blue); color: white; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th, td { border: 1px solid #333; padding: 5px; }
         th { background: var(--blue); }
     </style>
 </head>
-<body x-data="artelApp" x-init="initApp()">
+<body x-data="artelApp" :class="currentTheme" x-init="initApp()">
 
-<header>
-    <div class="in-14" style="font-size: 1.2rem;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</div>
+<header style="text-align:center; padding:10px; border-bottom:2px solid var(--blue);">
+    <h2 class="neon-text">АРТЕЛЬ: ОТДЕЛ МОДЕРНИЗАЦИИ</h2>
 </header>
 
-<div class="page" :class="{'active': page === 1}">
+<div class="page" :class="{'active': p === 1}">
     <div class="gost-card">
-        <div class="in-14" x-text="holidayInfo"></div>
-        <div class="cal-grid" style="margin-top:10px">
-            <template x-for="dn in ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']">
-                <div style="color:var(--blue); font-size:0.7rem; font-weight:bold" x-text="dn"></div>
-            </template>
-            <template x-for="d in calendar">
-                <div class="day-box" :class="{'today': d.isToday}" x-text="d.day"></div>
-            </template>
-        </div>
-        <div style="margin-top:15px; font-size:0.8rem; border-top:1px solid #333; padding-top:10px;">
-            <div x-text="'Мерфи: ' + murphy"></div>
-            <div x-text="'Оккам: ' + occam" style="color:var(--blue); margin-top:5px;"></div>
-        </div>
+        <div x-text="holiday"></div>
+        <div x-text="murphy"></div>
     </div>
-    
-    <div x-show="!openUstav">
-        <button class="btn-pusker" @click="openUstav = true">РАЗВЕРНУТЬ УСТАВ</button>
+    <div class="gost-card">
+        <strong>10 ЗАПОВЕДЕЙ</strong>
+        <template x-for="z in zapovedi"><div style="font-size:0.8rem" x-text="z"></div></template>
     </div>
+</div>
+
+<div class="page" :class="{'active': p === 2}">
+    <template x-if="!isReg">
+        <div class="gost-card">
+            <h3>РЕГИСТРАЦИЯ В АРТЕЛИ</h3>
+            <input type="text" x-model="userName" placeholder="Ваш Позывной">
+            <button class="btn-pusker" @click="register()">ПОЛУЧИТЬ РАНГ «ЛИЧИНКА»</button>
+        </div>
+    </template>
     
-    <div x-show="openUstav">
-        <h3 class="in-14">📋 10 ЗАПОВЕДЕЙ</h3>
-        <template x-for="(z, i) in zapovedi">
+    <template x-if="isReg">
+        <div>
             <div class="gost-card">
-                <strong x-text="(i+1) + '. ' + z.t"></strong>
-                <p style="font-size:0.8rem; margin:5px 0" x-text="z.d"></p>
+                Вы: <span style="color:var(--neon)" x-text="userName"></span> | Ранг: <span x-text="userRank"></span>
             </div>
-        </template>
-        <button class="btn-pusker" @click="openUstav = false">СВЕРНУТЬ</button>
-    </div>
-</div>
-
-<div class="page" :class="{'active': page === 2}">
-    <h3 class="in-14">РАДИОРУБКА</h3>
-    <div id="chat-window" style="height: 300px; overflow-y: auto; background:#000; border:1px solid var(--blue); padding:10px;">
-        <template x-for="m in messages">
-            <div style="margin-bottom:10px; border-left:3px solid var(--blue); padding-left:10px;">
-                <small class="in-14" x-text="m.u"></small>
-                <div x-text="m.t"></div>
+            <div id="chat" style="height:250px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000;">
+                <template x-for="m in msgs">
+                    <div style="margin-bottom:5px; border-bottom:1px solid #222;">
+                        <small x-text="m.u + ' (' + m.r + ')'" :style="m.r.includes('Гранд') ? 'color:var(--neon)' : ''"></small>
+                        <div x-text="m.t"></div>
+                    </div>
+                </template>
             </div>
-        </template>
-    </div>
-    <input type="text" x-model="newMsg" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--blue); margin-top:10px;" placeholder="Сообщение...">
-    <button class="btn-pusker" @click="sendMsg()">ПУСК</button>
-</div>
-
-<div class="page" :class="{'active': page === 3}">
-    <h3 class="in-14">ЗАНАЧКА</h3>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
-        <button class="btn-pusker" @click="sP=1">БИРЖА</button>
-        <button class="btn-pusker" @click="sP=2">СОВЕТЫ</button>
-        <button class="btn-pusker" @click="sP=3">АРХИВ</button>
-        <button class="btn-pusker" @click="sP=4">ЯЩИК НЗ</button>
-    </div>
-    <div class="gost-card" style="margin-top:10px">
-        <div x-show="sP==1"><strong>БИРЖА:</strong> Есть комплект прокладок на ЯМЗ. Обмен.</div>
-        <div x-show="sP==2"><strong>СОВЕТ:</strong> Не затягивай гайки «до хруста», хрустит обычно резьба.</div>
-        <div x-show="sP==3"><strong>АРХИВ:</strong> <a href="#" style="color:white">Чертеж съемника (PNG)</a></div>
-        <div x-show="sP==4"><strong>НЗ:</strong> Лом, кувалда и чья-то матерь.</div>
-    </div>
-</div>
-
-<div class="page" :class="{'active': page === 4}">
-    <h3 class="in-14">СПРАВОЧНИК</h3>
-    <input type="text" x-model="q" placeholder="Поиск (М10, OBD, Т-40)..." style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--blue);">
-    <table>
-        <thead><tr><th>Узел</th><th>Данные</th></tr></thead>
-        <tbody>
-            <template x-for="r in techData.filter(d => d.t.toLowerCase().includes(q.toLowerCase()) || d.v.toLowerCase().includes(q.toLowerCase()))">
-                <tr><td x-text="r.t"></td><td x-text="r.v" class="in-14"></td></tr>
-            </template>
-        </tbody>
-    </table>
-</div>
-
-<div class="page" :class="{'active': page === 5}">
-    <h3 class="in-14">СЕРВИСЫ И ИИ</h3>
-    <template x-for="l in links">
-        <a :href="l.u" target="_blank" class="gost-card" style="display:block; text-decoration:none; color:inherit;" x-text="l.n"></a>
+            <input type="text" x-model="newM" @keyup.enter="sendM()" placeholder="Приём...">
+            <button class="btn-pusker" @click="sendM()">ПУСК</button>
+        </div>
     </template>
 </div>
 
-<div class="page" :class="{'active': page === 6}">
-    <h3 class="in-14">ВЕРСТАК ПРОМТОВ</h3>
-    <div class="gost-card" style="min-height:150px" x-text="prompt"></div>
-    <button class="btn-pusker" @click="nextPrompt()">СЛЕДУЮЩИЙ</button>
+<div class="page" :class="{'active': p === 3}">
+    <h3 style="color:var(--neon)">ЯЩИКИ ХРАНЕНИЯ</h3>
+    <div class="gost-card">
+        <input type="text" x-model="boxNote" placeholder="Записка в ящик...">
+        <input type="file" id="fileInput" style="margin-top:10px;">
+        <button class="btn-pusker" @click="saveToBox()">ПОЛОЖИТЬ В ЯЩИК</button>
+    </div>
+    <div class="gost-card">
+        <strong>СОДЕРЖИМОЕ:</strong>
+        <template x-for="(item, index) in boxItems">
+            <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:0.8rem;">
+                <span x-text="item.name"></span>
+                <button @click="boxItems.splice(index, 1)" style="color:red; background:none; border:none;">[УДАЛИТЬ]</button>
+            </div>
+        </template>
+    </div>
 </div>
 
-<div class="page" :class="{'active': page === 7}">
-    <h3 class="in-14">ЮМОР</h3>
-    <div class="gost-card" style="min-height:150px" x-text="joke"></div>
-    <button class="btn-pusker" @click="nextJoke()">ЕЩЁ</button>
+<div class="page" :class="{'active': p === 4}">
+    <input type="text" x-model="techSearch" placeholder="Поиск по базе (OBD, подшипник, резьба)...">
+    <div style="display:flex; gap:5px; margin:10px 0;">
+        <button class="btn-pusker" @click="techTab='data'">ДАННЫЕ</button>
+        <button class="btn-pusker" @click="techTab='obd'">OBD-II КОДЫ</button>
+        <button class="btn-pusker" @click="techTab='signs'">ПРИЗНАКИ</button>
+    </div>
+    
+    <div x-show="techTab=='data'">
+        <table>
+            <thead><tr><th>Тип</th><th>Размер/ГОСТ</th><th>Узел</th></tr></thead>
+            <tbody>
+                <template x-for="i in techData.filter(d => d.name.includes(techSearch))">
+                    <tr><td x-text="i.type"></td><td x-text="i.val"></td><td x-text="i.unit"></td></tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+
+    <div x-show="techTab=='obd'">
+        <table>
+            <thead><tr><th>Код</th><th>Марка</th><th>Расшифровка</th></tr></thead>
+            <tbody>
+                <template x-for="o in obdData">
+                    <tr><td x-text="o.c"></td><td x-text="o.m"></td><td x-text="o.d"></td></tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div class="page" :class="{'active': page === 8}">
-    <h3 class="in-14">НАСТРОЙКИ</h3>
-    <div class="gost-card">Роль: <span x-text="role"></span></div>
-    <div id="qrcode" style="background:#fff; padding:10px; display:inline-block; margin-top:20px;"></div>
+<div class="page" :class="{'active': p === 5}">
+    <h3 style="color:var(--neon)">ОБУЧАЛКА ПО ПРОМТАМ</h3>
+    <div class="gost-card" style="font-size:0.8rem;">
+        <strong>Правило 1:</strong> Роль. "Ты - инженер-механик..."<br>
+        <strong>Правило 2:</strong> Задача. "Разработай схему..."<br>
+        <strong>Правило 3:</strong> Ограничения. "Без использования сварки..."
+    </div>
+    <a href="https://promptcowboy.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">ПРОМТ КОВБОЙ</a>
+    <a href="https://flowgpt.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">БАЗА ПРОМТОВ</a>
+</div>
+
+<div class="page" :class="{'active': p === 6}">
+    <h3 style="color:var(--neon)">СЕРВИСЫ И ИИ</h3>
+    <template x-for="l in links">
+        <a :href="l.url" target="_blank" class="gost-card" style="display:block; text-decoration:none; color:inherit;" x-text="l.n"></a>
+    </template>
+</div>
+
+<div class="page" :class="{'active': p === 7}">
+    <div class="zone">
+        <div style="font-weight:bold; color:var(--neon);">[АРТЕЛЬНЫЙ ТАБАК]</div>
+        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=smoke" alt="Brand 1">
+        <div><a href="https://onliner.by" target="_blank" style="color:var(--text)">Новости Беларуси</a></div>
+    </div>
+    <div class="zone">
+        <div style="font-weight:bold; color:var(--neon);">[АРТЕЛЬНЫЙ КОФЕ]</div>
+        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=coffee" alt="Brand 2">
+        <div><a href="https://e-lib.belstu.by" target="_blank" style="color:var(--text)">Тех. Библиотека РБ</a></div>
+    </div>
+    <div class="zone">
+        <div style="font-weight:bold; color:var(--neon);">[АРТЕЛЬНЫЙ ВИСКЪ ГОСТ]</div>
+        <img src="https://api.dicebear.com/7.x/shapes/svg?seed=whiskey" alt="Brand 3">
+        <div><a href="http://radiopotok.ru" target="_blank" style="color:var(--text)">Радиостанции</a></div>
+    </div>
+</div>
+
+<div class="page" :class="{'active': p === 8}">
+    <h3 style="color:var(--neon)">НАСТРОЙКИ ИНТЕРФЕЙСА</h3>
+    <div class="gost-card">
+        Стиль:<br>
+        <button class="btn-pusker" @click="currentTheme=''">СТАНДАРТ</button>
+        <button class="btn-pusker" @click="currentTheme='theme-modern'">НОВЫЙ АВТО (NEON)</button>
+        <button class="btn-pusker" @click="currentTheme='theme-retro'">РАРИТЕТ (RETRO)</button>
+    </div>
+    <div class="gost-card" style="text-align:center;">
+        <div id="qrcode"></div>
+        <small>ПОДКЛЮЧИТЬ ТЕЛЕФОН</small>
+    </div>
 </div>
 
 <nav class="nav-bar">
-    <div class="nav-item" :class="{'active': page === 1}" @click="page=1; refreshIcons()"><i data-lucide="home"></i></div>
-    <div class="nav-item" :class="{'active': page === 2}" @click="page=2; refreshIcons()"><i data-lucide="message-square"></i></div>
-    <div class="nav-item" :class="{'active': page === 3}" @click="page=3; refreshIcons()"><i data-lucide="box"></i></div>
-    <div class="nav-item" :class="{'active': page === 4}" @click="page=4; refreshIcons()"><i data-lucide="wrench"></i></div>
-    <div class="nav-item" :class="{'active': page === 5}" @click="page=5; refreshIcons()"><i data-lucide="zap"></i></div>
-    <div class="nav-item" :class="{'active': page === 6}" @click="page=6; refreshIcons()"><i data-lucide="brain"></i></div>
-    <div class="nav-item" :class="{'active': page === 7}" @click="page=7; refreshIcons()"><i data-lucide="smile"></i></div>
-    <div class="nav-item" :class="{'active': page === 8}" @click="page=8; refreshIcons()"><i data-lucide="settings"></i></div>
+    <template x-for="i in [1,2,3,4,5,6,7,8]">
+        <div class="nav-item" :class="{'active': p === i}" @click="p=i; ref()">
+            <i :data-lucide="icons[i-1]"></i>
+        </div>
+    </template>
 </nav>
 
 <script>
     document.addEventListener('alpine:init', () => {
-         Alpine.data('artelApp', () => ({
-            page: 1, sP: 1, q: '', openUstav: false,
-            role: 'Мастер', prompt: '', joke: '', newMsg: '',
-            holidayInfo: 'Будни Артели', murphy: 'Все, что может сломаться — сломается.', occam: 'Не усложняй.',
-            calendar: [], messages: [{u:'Админ', t:'Цех готов к работе.'}],
+        Alpine.data('artelApp', () => ({
+            p: 1, techTab: 'data', currentTheme: '',
+            isReg: localStorage.getItem('artel_reg') || false,
+            userName: localStorage.getItem('artel_name') || '',
+            userRank: localStorage.getItem('artel_rank') || 'Личинка инженера',
+            newM: '', msgs: [{u:'Гранд-Мастер', r:'Админ', t:'Добро пожаловать в цех!'}],
+            boxNote: '', boxItems: [], techSearch: '',
+            icons: ['home','message-circle','package','wrench','brain','zap','coffee','settings'],
+            links: [{n:'Gemini', url:'https://gemini.google.com'}, {n:'Canva', url:'https://canva.com'}],
+            zapovedi: ['1. Не уверен - не крути', '2. Синяя изолента - база'],
             techData: [
-                {t:'OBD: P0300', v:'Пропуски зажигания'}, {t:'OBD: P0171', v:'Бедная смесь'},
-                {t:'Резьба M8', v:'Шаг 1.25 / Сверло 6.8'}, {t:'МТЗ-80', v:'Зазор клапанов 0.25'},
-                {t:'Подшипник 203', v:'17x40x12 мм'}, {t:'Т-40', v:'Давление масла 1.5-3.0'}
+                {type:'Подшипник', val:'6204 (20x47x14)', unit:'Генератор'},
+                {type:'Резьба', val:'M10 Шаг 1.5', unit:'Стандарт'}
             ],
-            links: [
-                {n:'Google Gemini', u:'https://gemini.google.com'}, {n:'Suno AI', u:'https://suno.com'},
-                {n:'Notebook LM', u:'https://notebooklm.google.com'}, {n:'Бесплатный VPN', u:'https://1.1.1.1'}
-            ],
-            zapovedi: [
-                {t:'ТБ — не догма', d:'Запасных пальцев не выдают.'},
-                {t:'Изолента', d:'Синяя — универсальный клей.'},
-                {t:'Мат', d:'Ускоритель процессов.'},
-                {t:'Лишние детали', d:'Это оптимизация веса.'}
+            obdData: [
+                {c:'P0300', m:'Все', d:'Пропуски зажигания'},
+                {c:'P0171', m:'Toyota/Lexus', d:'Бедная смесь'}
             ],
 
             initApp() {
-                this.updateCal();
-                this.nextPrompt();
-                this.nextJoke();
-                this.refreshIcons();
-                // Генерируем QR
-                setTimeout(() => {
-                    const qr = qrcode(0, 'M');
-                    qr.addData(window.location.href);
-                    qr.make();
+                this.holiday = "Смена: " + new Date().toLocaleDateString();
+                this.murphy = "Закон Мерфи: Если что-то может сломаться — сломается.";
+                setTimeout(() => { 
+                    lucide.createIcons(); 
+                    const qr = qrcode(0, 'M'); qr.addData(window.location.href); qr.make();
                     document.getElementById('qrcode').innerHTML = qr.createImgTag(3);
                 }, 500);
             },
-
-            refreshIcons() {
-                setTimeout(() => lucide.createIcons(), 50);
-            },
-
-            updateCal() {
-                const now = new Date();
-                const start = new Date(now.getFullYear(), now.getMonth(), 1);
-                let first = start.getDay(); 
-                first = (first === 0) ? 6 : first - 1; 
-                for (let i = 0; i < first; i++) this.calendar.push({day:''});
-                const total = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                for (let i = 1; i <= total; i++) {
-                    this.calendar.push({day: i, isToday: i === now.getDate()});
-                }
-                this.holidayInfo = "Сегодня: " + now.toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
-            },
-
-            sendMsg() {
-                if(this.newMsg) {
-                    this.messages.push({u:'Вы', t:this.newMsg});
-                    this.newMsg = '';
-                    this.$nextTick(() => {
-                        const win = document.getElementById('chat-window');
-                        win.scrollTop = win.scrollHeight;
-                    });
+            ref() { setTimeout(() => lucide.createIcons(), 50); },
+            register() {
+                if(this.userName) {
+                    this.isReg = true;
+                    localStorage.setItem('artel_reg', true);
+                    localStorage.setItem('artel_name', this.userName);
+                    localStorage.setItem('artel_rank', 'Личинка инженера');
                 }
             },
-
-            nextPrompt() {
-                const ps = ["Сделай обогреватель из ТЭНа и кирпича.", "Как собрать компрессор из холодильника.", "Идея: ЧПУ из мебельных направляющих."];
-                this.prompt = ps[Math.floor(Math.random()*ps.length)];
+            sendM() {
+                if(this.newM) {
+                    this.msgs.push({u: this.userName, r: this.userRank, t: this.newM});
+                    this.newM = '';
+                }
             },
-
-            nextJoke() {
-                const js = ["В гараже нет грязи, есть только антикор.", "Купил запчасть — обмой, а то не приживется.", "Синяя изолента держит лучше сварки."];
-                this.joke = js[Math.floor(Math.random()*js.length)];
+            saveToBox() {
+                if(this.boxNote) {
+                    this.boxItems.push({name: this.boxNote});
+                    this.boxNote = '';
+                }
             }
-         }));
+        }));
     });
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
