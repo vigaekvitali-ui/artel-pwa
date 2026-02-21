@@ -12,8 +12,7 @@
         :root { --blue: #0047ab; --neon: #ff5e00; --bg: #0a0a0a; --text: #bdc3c7; }
         .theme-modern { --blue: #00f2ff; --neon: #00ff41; --bg: #050505; }
         .theme-retro { --blue: #5d4037; --neon: #ff9800; --bg: #1a1a1a; }
-        
-        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; transition: 0.3s; }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
         .page { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
         .active { display: block !important; }
         .gost-card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 12px; margin-bottom: 10px; border-left: 5px solid var(--blue); }
@@ -21,28 +20,24 @@
         .nav-item { color: #444; cursor: pointer; }
         .nav-item.active { color: var(--neon); transform: scale(1.2); }
         .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 5px 0; }
-        .zone { border: 1px solid var(--blue); padding: 15px; margin-bottom: 15px; text-align: center; background: rgba(0,0,0,0.5); }
-        .zone img { width: 100px; margin-bottom: 10px; border-radius: 5px; }
         input, select { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid var(--blue); box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
-        th { background: var(--blue); }
         .rank-label { font-size: 0.6rem; padding: 2px 5px; border: 1px solid var(--neon); color: var(--neon); margin-left: 5px; }
+        .zone { border: 1px solid var(--blue); padding: 15px; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
 <body x-data="artelApp" :class="theme" x-init="initApp()">
 
 <header style="padding:15px; text-align:center; border-bottom:2px solid var(--blue); background:#000;">
-    <div style="color:var(--neon); font-weight:bold; letter-spacing: 2px;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</div>
+    <div style="color:var(--neon); font-weight:bold;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</div>
 </header>
 
 <div class="page" :class="{'active': p === 1}">
     <div class="gost-card">
         <h3 style="margin:0; color:var(--neon)" x-text="holiday"></h3>
-        <p style="font-size:0.8rem" x-text="murphy"></p>
+        <p x-text="murphy"></p>
     </div>
     <div class="gost-card">
-        <strong>📜 УСТАВ (10 ЗАПОВЕДЕЙ)</strong>
+        <strong>📜 10 ЗАПОВЕДЕЙ</strong>
         <div style="font-size:0.75rem; margin-top:5px;">
             <template x-for="(z, i) in zapovedi">
                 <div x-text="(i+1) + '. ' + z" style="margin-bottom:3px"></div>
@@ -54,9 +49,9 @@
 <div class="page" :class="{'active': p === 2}">
     <template x-if="!isReg">
         <div class="gost-card">
-            <h3>ВХОД В СИСТЕМУ</h3>
+            <h3>РЕГИСТРАЦИЯ</h3>
             <input type="text" x-model="userName" placeholder="Позывной...">
-            <button class="btn-pusker" @click="register()">ПОЛУЧИТЬ РАНГ «ЛИЧИНКА»</button>
+            <button class="btn-pusker" @click="register()">ВХОД</button>
         </div>
     </template>
     <template x-if="isReg">
@@ -66,56 +61,42 @@
                     <div style="margin-bottom:10px; border-left:2px solid var(--blue); padding-left:8px;">
                         <span style="font-weight:bold; color:var(--neon)" x-text="m.username"></span>
                         <span class="rank-label" x-text="m.rank"></span>
-                        <div style="font-size:0.9rem" x-text="m.text"></div>
+                        <div x-text="m.text"></div>
                     </div>
                 </template>
             </div>
             <div style="display:flex; gap:5px;">
                 <input type="text" x-model="newM" @keyup.enter="sendM()" placeholder="Приём...">
-                <button @click="sendM()" style="width:80px; background:var(--blue); color:#fff; border:none;">ПУСК</button>
+                <button @click="sendM()" class="btn-pusker" style="width:80px; margin:0;">ПУСК</button>
             </div>
         </div>
     </template>
 </div>
 
 <div class="page" :class="{'active': p === 3}">
-    <h3 style="color:var(--neon)">ЯЩИКИ ХРАНЕНИЯ</h3>
+    <h3 style="color:var(--neon)">ЯЩИКИ (ОБЩИЕ)</h3>
     <div class="gost-card">
-        <input type="text" x-model="boxNote" placeholder="Что кладем в ящик?">
-        <button class="btn-pusker" @click="saveBox()">ЗАПИСАТЬ В БАЗУ</button>
+        <input type="text" x-model="boxNote" placeholder="Запись или ссылка на файл...">
+        <button class="btn-pusker" @click="saveBox()">СОХРАНИТЬ В БАЗУ</button>
     </div>
     <div class="gost-card">
-        <strong>СОДЕРЖИМОЕ ОБЩЕГО СКЛАДА:</strong>
         <template x-for="item in boxItems">
-            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #222;">
+            <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;">
                 <span x-text="item.content"></span>
-                <button @click="deleteBox(item.id)" style="color:red; background:none; border:none; cursor:pointer;">[УДАЛИТЬ]</button>
+                <button @click="deleteBox(item.id)" style="color:red; background:none; border:none;">[X]</button>
             </div>
         </template>
     </div>
 </div>
 
 <div class="page" :class="{'active': p === 4}">
-    <input type="text" x-model="q" placeholder="Поиск (Подшипник, OBD, Т-40, Дым)...">
-    <div style="display:flex; gap:2px; margin:10px 0;">
-        <button class="btn-pusker" @click="tab='sp'" :style="tab=='sp'?'background:var(--neon)':''">ЖЕЛЕЗО</button>
-        <button class="btn-pusker" @click="tab='obd'" :style="tab=='obd'?'background:var(--neon)':''">OBD-II</button>
-        <button class="btn-pusker" @click="tab='diag'" :style="tab=='diag'?'background:var(--neon)':''">ДИАГНОЗ</button>
-    </div>
-    <div style="overflow-x:auto">
-        <table x-show="tab=='sp'">
-            <thead><tr><th>Вид</th><th>Параметры</th><th>Применение</th></tr></thead>
+    <input type="text" x-model="q" placeholder="Поиск (Подшипник, OBD)...">
+    <div style="margin-top:10px;">
+        <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
+            <thead><tr style="background:var(--blue)"><th>Тип</th><th>Данные</th></tr></thead>
             <tbody>
                 <template x-for="i in tech.filter(x => x.n.includes(q))">
-                    <tr><td x-text="i.n"></td><td style="color:var(--neon)" x-text="i.v"></td><td x-text="i.u"></td></tr>
-                </template>
-            </tbody>
-        </table>
-        <table x-show="tab=='obd'">
-            <thead><tr><th>Код</th><th>Марка</th><th>Суть</th></tr></thead>
-            <tbody>
-                <template x-for="o in obd.filter(x => x.c.includes(q) || x.m.includes(q))">
-                    <tr><td x-text="o.c"></td><td x-text="o.m"></td><td x-text="o.d"></td></tr>
+                    <tr><td style="border:1px solid #333; padding:5px" x-text="i.n"></td><td style="border:1px solid #333; padding:5px; color:var(--neon)" x-text="i.v"></td></tr>
                 </template>
             </tbody>
         </table>
@@ -123,19 +104,15 @@
 </div>
 
 <div class="page" :class="{'active': p === 5}">
-    <h3 style="color:var(--neon)">ИНЖЕНЕРНАЯ ОБУЧАЛКА</h3>
+    <h3 style="color:var(--neon)">ИНЖЕНЕРНЫЕ ПРОМТЫ</h3>
     <div class="gost-card">
-        <strong>КАК ПИСАТЬ ПРОМТ:</strong><br>
-        1. "Действуй как [ИНЖЕНЕР]"<br>
-        2. "Создай [СПИСОК ЗАПЧАСТЕЙ] для [ЦЕЛЬ]"<br>
-        3. "Учитывай, что [ОГРАНИЧЕНИЕ]"
+        <p>Используй "Промт Ковбой" для точной настройки ИИ под гаражные задачи.</p>
+        <a href="https://promptcowboy.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">ОТКРЫТЬ КОВБОЯ</a>
     </div>
-    <a href="https://promptcowboy.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">ПРОМТ КОВБОЙ</a>
-    <a href="https://flowgpt.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">БАЗА ГОТОВЫХ ПРОМТОВ</a>
 </div>
 
 <div class="page" :class="{'active': p === 6}">
-    <h3 style="color:var(--neon)">СЕРВИСЫ И ИИ (НУЖЕН VPN)</h3>
+    <h3 style="color:var(--neon)">СЕРВИСЫ (НУЖЕН VPN)</h3>
     <template x-for="l in links">
         <a :href="l.u" target="_blank" class="gost-card" style="display:block; text-decoration:none; color:inherit; text-align:center;" x-text="l.n"></a>
     </template>
@@ -143,38 +120,34 @@
 
 <div class="page" :class="{'active': p === 7}">
     <div class="zone">
-        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=smoke" alt="Tabak">
-        <div style="font-weight:bold; color:var(--neon)">АРТЕЛЬНЫЙ ТАБАК</div>
-        <a href="https://onliner.by" target="_blank" style="color:var(--text); font-size:0.8rem">НОВОСТИ (ONLINER)</a>
+        <div style="color:var(--neon)">АРТЕЛЬНЫЙ ТАБАК</div>
+        <a href="https://onliner.by" target="_blank" style="color:#fff">Новости Беларуси</a>
     </div>
     <div class="zone">
-        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=coffee" alt="Coffee">
-        <div style="font-weight:bold; color:var(--neon)">АРТЕЛЬНЫЙ КОФЕ</div>
-        <a href="https://e-lib.belstu.by" target="_blank" style="color:var(--text); font-size:0.8rem">БИБЛИОТЕКА (БГТУ)</a>
+        <div style="color:var(--neon)">АРТЕЛЬНЫЙ КОФЕ</div>
+        <a href="https://e-lib.belstu.by" target="_blank" style="color:#fff">Библиотека БГТУ</a>
     </div>
     <div class="zone">
-        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=whiskey" alt="Gost">
-        <div style="font-weight:bold; color:var(--neon)">ВИСКЪ "АРТЕЛЬНЫЙ" ГОСТ</div>
-        <a href="http://radiopotok.ru" target="_blank" style="color:var(--text); font-size:0.8rem">МУЗЫКА И РАДИО</a>
+        <div style="color:var(--neon)">ВИСКЪ "АРТЕЛЬНЫЙ"</div>
+        <a href="http://radiopotok.ru" target="_blank" style="color:#fff">Радио и Музыка</a>
     </div>
 </div>
 
 <div class="page" :class="{'active': p === 8}">
-    <h3 style="color:var(--neon)">ЦЕХОВЫЕ НАСТРОЙКИ</h3>
+    <h3 style="color:var(--neon)">НАСТРОЙКИ</h3>
     <div class="gost-card">
-        ТЕМА ИНТЕРФЕЙСА:<br>
-        <button class="btn-pusker" @click="theme=''">ЗАВОДСКАЯ</button>
-        <button class="btn-pusker" @click="theme='theme-modern'">СОВРЕМЕННОЕ АВТО</button>
-        <button class="btn-pusker" @click="theme='theme-retro'">РАРИТЕТ</button>
+        ТЕМЫ:<br>
+        <button class="btn-pusker" @click="theme=''">ЗАВОД</button>
+        <button class="btn-pusker" @click="theme='theme-modern'">НЕОН</button>
+        <button class="btn-pusker" @click="theme='theme-retro'">РЕТРО</button>
     </div>
-    <div class="gost-card" style="text-align:center; background:#fff; padding:10px;">
+    <div class="gost-card" style="text-align:center; background:#fff;">
         <div id="qrcode"></div>
-        <div style="color:#000; font-size:0.7rem">QR ДЛЯ ПОДКЛЮЧЕНИЯ</div>
     </div>
 </div>
 
 <nav class="nav-bar">
-    <template x-for="(ic, i) in icons">
+    <template x-for="(ic, i) in ['home','message-square','package','wrench','brain','zap','coffee','settings']">
         <div class="nav-item" :class="{'active': p === (i+1)}" @click="p=(i+1); ref()">
             <i :data-lucide="ic"></i>
         </div>
@@ -182,46 +155,29 @@
 </nav>
 
 <script>
-    // --- ПОДКЛЮЧЕНИЕ К БАЗЕ ---
-    const _URL = 'ТВОЙ_SUPABASE_URL';
-    const _KEY = 'ТВОЙ_SUPABASE_ANON_KEY';
-    const supabase = typeof supabase !== 'undefined' ? supabase.createClient(_URL, _KEY) : null;
+    const _URL = 'https://grsszunlfmehyykkvccj.supabase.co';
+    const _KEY = 'sb_publishable_lOjqRJ2R_tHLo0GiLPjaYA_6UYCfCaX';
+    const supabase = window.supabase ? window.supabase.createClient(_URL, _KEY) : null;
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            p: 1, tab: 'sp', theme: localStorage.getItem('artel_theme') || '',
-            isReg: localStorage.getItem('artel_isReg') || false,
-            userName: localStorage.getItem('artel_user') || '',
-            userRank: localStorage.getItem('artel_rank') || 'Личинка инженера',
+            p: 1, theme: localStorage.getItem('theme') || '',
+            isReg: localStorage.getItem('reg') || false,
+            userName: localStorage.getItem('user') || '',
+            userRank: localStorage.getItem('rank') || 'Личинка инженера',
             newM: '', msgs: [], boxNote: '', boxItems: [], q: '',
-            icons: ['home','message-square','package','wrench','brain','zap','coffee','settings'],
-            holiday: 'Будни Артели', murphy: 'Если гайка не идет, значит резьба левая.',
-            zapovedi: ['Не лезь в отлаженный механизм','Синяя изолента - венец творения','Мат ускоряет ремонт','Лишних деталей не бывает'],
-            tech: [
-                {n:'Подшипник 203', v:'17x40x12', u:'Генератор'},
-                {n:'Сальник 40х60', v:'Резина ГОСТ', u:'Ступица'},
-                {n:'Резьба M10', v:'Шаг 1.5 / 8.5мм', u:'Стандарт'}
-            ],
-            obd: [
-                {c:'P0300', m:'Универсал', d:'Пропуски зажигания'},
-                {c:'P0171', m:'Грузовые', d:'Бедная смесь'},
-                {c:'E12', m:'Трактор МТЗ', d:'Низкое давление масла'}
-            ],
-            links: [
-                {n:'Gemini 1.5', u:'https://gemini.google.com'},
-                {n:'Suno (Музыка AI)', u:'https://suno.com'},
-                {n:'Notebook LM', u:'https://notebooklm.google.com'}
-            ],
+            holiday: 'Будни Артели', murphy: 'Гайка всегда падает в самое недоступное место.',
+            zapovedi: ['Не лезь в работающий механизм','Изолента — венец творения','Мат ускоряет ремонт'],
+            tech: [{n:'Подшипник 203', v:'17x40x12'}, {n:'OBD P0300', v:'Пропуски зажигания'}],
+            links: [{n:'Gemini', u:'https://gemini.google.com'}, {n:'Suno', u:'https://suno.com'}],
 
             async initApp() {
-                this.holiday = "Смена: " + new Date().toLocaleDateString('ru-RU');
                 lucide.createIcons();
                 this.genQR();
                 if(supabase) {
                     this.fetchMsgs();
                     this.fetchBox();
-                    // Подписка на обновления (Realtime)
-                    supabase.channel('any').on('postgres_changes', {event:'*', schema:'public'}, () => {
+                    supabase.channel('room1').on('postgres_changes', {event:'*', schema:'public'}, () => {
                         this.fetchMsgs(); this.fetchBox();
                     }).subscribe();
                 }
@@ -230,13 +186,12 @@
             register() {
                 if(this.userName) {
                     this.isReg = true;
-                    localStorage.setItem('artel_isReg', true);
-                    localStorage.setItem('artel_user', this.userName);
-                    localStorage.setItem('artel_rank', 'Личинка инженера');
+                    localStorage.setItem('reg', true);
+                    localStorage.setItem('user', this.userName);
                 }
             },
             async fetchMsgs() {
-                const {data} = await supabase.from('messages').select('*').order('id', {ascending: false}).limit(20);
+                const {data} = await supabase.from('messages').select('*').order('id', {ascending:false}).limit(20);
                 if(data) this.msgs = data.reverse();
             },
             async sendM() {
@@ -250,7 +205,7 @@
             },
             async saveBox() {
                 if(!this.boxNote) return;
-                await supabase.from('boxes').insert([{content:this.boxNote, user:this.userName}]);
+                await supabase.from('boxes').insert([{content:this.boxNote, user_name:this.userName}]);
                 this.boxNote = '';
             },
             async deleteBox(id) {
