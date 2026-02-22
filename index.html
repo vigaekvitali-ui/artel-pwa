@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>АРТЕЛЬ v3.0 ПРЯМОЙ ПРИВОД</title>
+    <title>АРТЕЛЬ v3.0 MOBILE</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -12,30 +12,31 @@
     <style>
         :root { --blue: #0047ab; --neon: #ff5e00; --bg: #0a0a0a; --text: #bdc3c7; }
         [x-cloak] { display: none !important; }
-        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
-        header { padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); background: #000; color: var(--neon); font-weight: bold; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding-bottom: 80px; }
+        header { padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); background: #000; color: var(--neon); font-weight: bold; font-size: 1rem; }
         
-        .page { display: none; padding: 15px; max-width: 1000px; margin: 0 auto; }
+        .page { display: none; padding: 10px; max-width: 1000px; margin: 0 auto; }
         .active { display: block !important; }
 
-        /* Твоя новая сетка 50/50 */
-        .grid-main { display: flex; gap: 15px; flex-wrap: wrap; }
-        .column-left { flex: 1; min-width: 300px; }
-        .column-right { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
+        /* Адаптивная сетка */
+        .grid-main { display: flex; flex-wrap: wrap; gap: 10px; }
+        .column-left { flex: 1.5; min-width: 300px; }
+        .column-right { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 10px; }
         
-        .card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; border-left: 5px solid var(--blue); }
+        .card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; border-left: 4px solid var(--blue); }
         
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue); z-index: 1000; }
-        .nav-item { color: #444; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .nav-item.active { color: var(--neon); transform: scale(1.2); }
+        /* Нижнее меню */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--blue); z-index: 9999; }
+        .nav-item { color: #555; cursor: pointer; text-align: center; flex: 1; }
+        .nav-item.active { color: var(--neon); }
         
-        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
         input { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid var(--blue); box-sizing: border-box; }
         
-        .zone-box { border: 2px solid var(--blue); margin-bottom: 15px; text-align: center; background: #000; }
-        .zone-box img { width: 100%; height: 120px; object-fit: cover; opacity: 0.6; }
+        .zone-box { border: 2px solid var(--blue); margin-bottom: 10px; text-align: center; background: #000; }
+        .zone-box img { width: 100%; height: 100px; object-fit: cover; }
         
-        .rank-badge { color: var(--neon); border: 1px solid var(--neon); padding: 10px; display: inline-block; font-weight: bold; font-size: 1.2rem; }
+        .rank-badge { color: var(--neon); border: 1px solid var(--neon); padding: 8px; display: inline-block; font-weight: bold; font-size: 1.1rem; margin-top: 10px; }
     </style>
 </head>
 <body x-data="artelApp" x-init="init()">
@@ -48,23 +49,21 @@
             <div class="column-left">
                 <div class="card">
                     <strong style="color:var(--neon)">📜 УСТАВ АРТЕЛИ</strong>
-                    <div style="font-size:0.9rem; margin-top:15px;">
+                    <div style="font-size:0.85rem; margin-top:10px; line-height: 1.4;">
                         <template x-for="(z, i) in zapovedi">
-                            <div style="margin-bottom:10px;"><b x-text="(i+1) + '.'"></b> <span x-text="z"></span></div>
+                            <div style="margin-bottom:8px;"><b x-text="(i+1) + '.'"></b> <span x-text="z"></span></div>
                         </template>
                     </div>
                 </div>
             </div>
             <div class="column-right">
                 <div class="card" style="text-align:center;">
-                    <b style="color:var(--neon)">📅 ТЕКУЩАЯ ДАТА</b><br><br>
-                    <div style="font-size:1.3rem; font-weight:bold;" x-text="today"></div>
-                    <div style="font-size:0.7rem; margin-top:10px; opacity:0.5;">СМЕНА: ДНЕВНАЯ</div>
+                    <b style="color:var(--neon)">📅 ДАТА</b><br>
+                    <div style="font-size:1.2rem; margin-top:10px;" x-text="today"></div>
                 </div>
                 <div class="card" style="text-align:center;">
-                    <b style="color:var(--neon)">🎖 ВАШ РАНГ</b><br><br>
+                    <b style="color:var(--neon)">🎖 РАНГ</b><br>
                     <div class="rank-badge">МАСТАДОНТ</div>
-                    <div style="font-size:0.7rem; margin-top:15px; opacity:0.6;">ДОСТУП: ВЫСШИЙ ПРИОРЕТЕТ</div>
                 </div>
             </div>
         </div>
@@ -72,42 +71,42 @@
 
     <div class="page" :class="{'active': p === 2}">
         <div class="card" x-show="!isReg">
-            <b>РЕГИСТРАЦИЯ</b>
-            <input type="text" x-model="userName" placeholder="Позывной..." style="margin-top:10px;">
-            <button class="btn-pusker" @click="register()" style="margin-top:10px;">ВОЙТИ В СЕТЬ</button>
+            <b>ВХОД</b>
+            <input type="text" x-model="userName" placeholder="Позывной...">
+            <button class="btn-pusker" @click="register()">ОК</button>
         </div>
         <div x-show="isReg">
-            <div id="chat-win" style="height:350px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000; margin-bottom:10px;">
+            <div id="chat-win" style="height:300px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000; margin-bottom:10px; font-size:0.9rem;">
                 <template x-for="m in msgs">
-                    <div style="margin-bottom:10px; border-left:2px solid var(--blue); padding-left:8px;">
-                        <small style="color:var(--neon)" x-text="m.username"></small><br><span x-text="m.text"></span>
+                    <div style="margin-bottom:8px; border-left:2px solid var(--blue); padding-left:8px;">
+                        <small style="color:var(--neon)" x-text="m.username"></small>: <span x-text="m.text"></span>
                     </div>
                 </template>
             </div>
-            <div style="display:flex; gap:5px;"><input type="text" x-model="newM"><button @click="sendM()" class="btn-pusker" style="width:80px;">ОК</button></div>
+            <div style="display:flex; gap:5px;"><input type="text" x-model="newM"><button @click="sendM()" class="btn-pusker" style="width:60px; margin:0;">></button></div>
         </div>
     </div>
 
     <div class="page" :class="{'active': p === 7}">
         <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1626071445451-b06f3630656e?w=400" alt="табак">
-            <div style="padding:10px;"><b>🚬 ТАБАК</b><br><a href="https://onliner.by" target="_blank" style="color:#fff;">Onliner.by</a></div>
+            <img src="https://images.unsplash.com/photo-1626071445451-b06f3630656e?w=300" alt="табак">
+            <div style="padding:10px;"><b>🚬 ТАБАК</b><br><a href="https://onliner.by" target="_blank" style="color:#fff;">Onliner</a></div>
         </div>
         <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400" alt="кофе">
-            <div style="padding:10px;"><b>☕ КОФЕ</b><br><a href="https://e-lib.belstu.by" target="_blank" style="color:#fff;">Библиотека</a></div>
+            <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=300" alt="кофе">
+            <div style="padding:10px;"><b>☕ КОФЕ</b><br><a href="https://e-lib.belstu.by" target="_blank" style="color:#fff;">БГТУ</a></div>
         </div>
         <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1527281400828-ac737a999b9a?w=400" alt="виски">
+            <img src="https://images.unsplash.com/photo-1527281400828-ac737a999b9a?w=300" alt="виски">
             <div style="padding:10px;"><b>🥃 ВИСКИ</b><br><a href="http://radiopotok.ru" target="_blank" style="color:#fff;">Радио</a></div>
         </div>
     </div>
 
-    <div class="page" :class="{'active': p === 3}"><div class="card">СКЛАД / ЯЩИКИ</div></div>
-    <div class="page" :class="{'active': p === 4}"><div class="card">ТЕХ-АРХИВ</div></div>
+    <div class="page" :class="{'active': p === 3}"><div class="card">СКЛАД</div></div>
+    <div class="page" :class="{'active': p === 4}"><div class="card">АРХИВ</div></div>
     <div class="page" :class="{'active': p === 5}"><div class="card">ПРОМТЫ</div></div>
     <div class="page" :class="{'active': p === 6}"><div class="card">СЕРВИСЫ</div></div>
-    <div class="page" :class="{'active': p === 8}"><div class="card" style="text-align:center; background:#fff; padding:10px;"><div id="qrcode"></div></div></div>
+    <div class="page" :class="{'active': p === 8}"><div class="card" style="text-align:center; background:#fff;"><div id="qrcode"></div></div></div>
 </div>
 
 <nav class="nav-bar">
@@ -126,20 +125,19 @@
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            p: 1, today: '', isReg: localStorage.getItem('reg_v8') || false,
-            userName: localStorage.getItem('user_v8') || '',
+            p: 1, today: new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'long'}), 
+            isReg: localStorage.getItem('reg_v9') || false,
+            userName: localStorage.getItem('user_v9') || '',
             msgs: [],
-            zapovedi: ['Изолента — сила','Мат ускоряет ремонт','Лишних деталей нет','Не лезь — работает','Семь раз отмерь','Уважай мазуту','Инструмент — святое','Не уверен — не крути','Артель — семья','Перекур по ГОСТу'],
+            zapovedi: ['Изолента — сила','Мат ускоряет','Нет лишних деталей','Не лезь — работает','Семь раз отмерь','Уважай мазуту','Инструмент — святое','Не уверен — не крути','Артель — семья','Перекур!'],
             
             init() {
-                const d = new Date();
-                this.today = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
                 lucide.createIcons();
                 this.genQR();
                 if(db) this.load();
             },
             refresh() { setTimeout(() => lucide.createIcons(), 100); },
-            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg_v8', true); localStorage.setItem('user_v8', this.userName); }},
+            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg_v9', true); localStorage.setItem('user_v9', this.userName); }},
             async load() {
                 const {data:m} = await db.from('messages').select('*').order('id',{ascending:false}).limit(10);
                 if(m) this.msgs = m.reverse();
