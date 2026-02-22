@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>АРТЕЛЬ v3.0 FINAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>АРТЕЛЬ v3.0 ПРЕМИУМ</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -14,17 +14,30 @@
         [x-cloak] { display: none !important; }
         body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
         header { padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); background: #000; color: var(--neon); font-weight: bold; }
-        .page { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
+        
+        .page { display: none; padding: 15px; max-width: 1000px; margin: 0 auto; }
         .active { display: block !important; }
-        .card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; margin-bottom: 12px; border-left: 5px solid var(--blue); }
+
+        /* Сетка для первой страницы */
+        .grid-main { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-right { display: grid; grid-template-rows: auto auto; gap: 15px; }
+        
+        .card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; border-left: 5px solid var(--blue); height: 100%; box-sizing: border-box; }
+        
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue); z-index: 1000; }
         .nav-item { color: #444; cursor: pointer; }
         .nav-item.active { color: var(--neon); transform: scale(1.3); }
-        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        
+        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
         input { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid var(--blue); box-sizing: border-box; }
-        .zone-box { border: 2px solid var(--blue); padding: 15px; margin-bottom: 15px; text-align: center; background: rgba(0,0,0,0.4); }
-        .zone-box b { color: var(--neon); display: block; margin-bottom: 10px; }
-        .rank-badge { font-size: 0.7rem; color: var(--neon); border: 1px solid var(--neon); padding: 2px 5px; margin-left: 5px; }
+        
+        /* Стили курилки с картинками */
+        .zone-box { border: 2px solid var(--blue); margin-bottom: 15px; text-align: center; background: #000; overflow: hidden; }
+        .zone-box img { width: 100%; height: 150px; object-fit: cover; opacity: 0.7; }
+        .zone-info { padding: 10px; }
+        .zone-info b { color: var(--neon); text-transform: uppercase; }
+        
+        .rank-badge { color: var(--neon); border: 1px solid var(--neon); padding: 5px; display: inline-block; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body x-data="artelApp" x-init="init()">
@@ -33,71 +46,73 @@
 
 <div x-cloak :class="{'active': true}">
     <div class="page" :class="{'active': p === 1}">
-        <div class="card">
-            <div style="color:var(--neon); font-weight:bold; font-size:1.1rem;" x-text="today"></div>
-            <div style="font-size:0.8rem; margin-top:5px; opacity:0.8;">Статус: База активна</div>
-        </div>
-        <div class="card">
-            <strong style="color:var(--neon)">📜 УСТАВ АРТЕЛИ (10 ПУНКТОВ)</strong>
-            <div style="font-size:0.85rem; margin-top:10px;">
-                <template x-for="(z, i) in zapovedi">
-                    <div style="margin-bottom:6px;"><b x-text="(i+1) + '.'"></b> <span x-text="z"></span></div>
-                </template>
+        <div class="grid-main">
+            <div class="card">
+                <strong style="color:var(--neon)">📜 УСТАВ АРТЕЛИ</strong>
+                <div style="font-size:0.8rem; margin-top:15px;">
+                    <template x-for="(z, i) in zapovedi">
+                        <div style="margin-bottom:8px;"><b x-text="(i+1) + '.'"></b> <span x-text="z"></span></div>
+                    </template>
+                </div>
+            </div>
+            <div class="grid-right">
+                <div class="card" style="text-align:center;">
+                    <b style="color:var(--neon)">📅 ДАТА</b><br><br>
+                    <div style="font-size:1.1rem;" x-text="today"></div>
+                </div>
+                <div class="card" style="text-align:center;">
+                    <b style="color:var(--neon)">🎖 РАНГ СИСТЕМЫ</b><br>
+                    <div class="rank-badge">МАСТАДОНТ</div>
+                    <div style="font-size:0.7rem; margin-top:10px; opacity:0.6;">Доступ: Полный</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="page" :class="{'active': p === 2}">
         <template x-if="!isReg">
-            <div class="card"><b>РЕГИСТРАЦИЯ</b><input type="text" x-model="userName" placeholder="Позывной..."><button class="btn-pusker" @click="register()" style="width:100%; margin-top:10px;">ВОЙТИ</button></div>
+            <div class="card"><b>РЕГИСТРАЦИЯ</b><input type="text" x-model="userName" style="margin-top:10px;"><button class="btn-pusker" @click="register()">ВХОД</button></div>
         </template>
         <template x-if="isReg">
             <div>
-                <div style="margin-bottom:10px;">Связист: <b x-text="userName"></b> <span class="rank-badge">МАСТАДОНТ</span></div>
-                <div id="chat-win" style="height:300px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000;">
+                <div id="chat-win" style="height:350px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000;">
                     <template x-for="m in msgs">
                         <div style="margin-bottom:10px; border-left:2px solid var(--blue); padding-left:8px;">
                             <small style="color:var(--neon)" x-text="m.username"></small><br><span x-text="m.text"></span>
                         </div>
                     </template>
                 </div>
-                <div style="display:flex; margin-top:10px;"><input type="text" x-model="newM" @keyup.enter="sendM()"><button @click="sendM()" class="btn-pusker">ОК</button></div>
+                <div style="display:flex; margin-top:10px;"><input type="text" x-model="newM" @keyup.enter="sendM()"><button @click="sendM()" class="btn-pusker" style="width:80px; margin:0;">ОК</button></div>
             </div>
         </template>
     </div>
 
-    <div class="page" :class="{'active': p === 3}">
-        <div class="card"><input type="text" x-model="boxNote" placeholder="В ящик..."><button class="btn-pusker" @click="saveBox()" style="width:100%; margin-top:10px;">СОХРАНИТЬ</button></div>
-        <div class="card">
-            <template x-for="b in boxItems">
-                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span x-text="b.content"></span><button @click="deleteBox(b.id)" style="color:red; background:none; border:none;">[X]</button></div>
-            </template>
+    <div class="page" :class="{'active': p === 7}">
+        <div class="zone-box">
+            <img src="https://images.unsplash.com/photo-1626071445451-b06f3630656e?auto=format&fit=crop&w=800&q=80" alt="сигареты">
+            <div class="zone-info"><b>🚬 ТАБАК АРТЕЛИ</b><br><a href="https://onliner.by" target="_blank" style="color:#fff; text-decoration:none;">Onliner.by</a></div>
+        </div>
+        <div class="zone-box">
+            <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?auto=format&fit=crop&w=800&q=80" alt="кофе">
+            <div class="zone-info"><b>☕ КОФЕ АРТЕЛИ</b><br><a href="https://e-lib.belstu.by" target="_blank" style="color:#fff; text-decoration:none;">Библиотека БГТУ</a></div>
+        </div>
+        <div class="zone-box">
+            <img src="https://images.unsplash.com/photo-1527281400828-ac737a999b9a?auto=format&fit=crop&w=800&q=80" alt="виски">
+            <div class="zone-info"><b>🥃 ВИСКЪ "АРТЕЛЬНЫЙ"</b><br><a href="http://radiopotok.ru" target="_blank" style="color:#fff; text-decoration:none;">Радиопоток</a></div>
         </div>
     </div>
-
-    <div class="page" :class="{'active': p === 4}">
-        <div class="card"><b>СПРАВОЧНИК</b><br><small>Подшипники, резьбы, OBD коды...</small></div>
-    </div>
-
-    <div class="page" :class="{'active': p === 5}">
-        <div class="card"><b>ПРОМТ КОВБОЙ</b><br><br><a href="https://promptcowboy.com" target="_blank" class="btn-pusker" style="display:block; text-align:center; text-decoration:none;">ОТКРЫТЬ КОВБОЯ</a></div>
-    </div>
-
+    
+    <div class="page" :class="{'active': p === 3}"><div class="card"><b>СКЛАД</b></div></div>
+    <div class="page" :class="{'active': p === 4}"><div class="card"><b>ТЕХ-АРХИВ</b></div></div>
+    <div class="page" :class="{'active': p === 5}"><div class="card"><b>ПРОМТЫ</b><br><a href="https://promptcowboy.com" target="_blank" style="color:var(--neon)">ОТКРЫТЬ КОВБОЯ</a></div></div>
     <div class="page" :class="{'active': p === 6}">
-        <template x-for="l in links">
-            <a :href="l.u" target="_blank" class="card" style="display:block; text-align:center; text-decoration:none; color:#fff;" x-text="l.n"></a>
-        </template>
+        <div class="card"><b>СЕРВИСЫ</b><br>
+            <a href="https://gemini.google.com" target="_blank" style="display:block; margin:10px 0; color:#fff;">Google Gemini</a>
+            <a href="https://suno.com" target="_blank" style="display:block; margin:10px 0; color:#fff;">Suno Music</a>
+        </div>
     </div>
+    <div class="page" :class="{'active': p === 8}"><div class="card" style="text-align:center; background:#fff;"><div id="qrcode"></div></div></div>
 
-    <div class="page" :class="{'active': p === 7}">
-        <div class="zone-box"><b>🚬 ТАБАК АРТЕЛИ</b><a href="https://onliner.by" target="_blank" style="color:var(--text); text-decoration:none;">Новости Беларуси (Onliner)</a></div>
-        <div class="zone-box"><b>☕ КОФЕ АРТЕЛИ</b><a href="https://e-lib.belstu.by" target="_blank" style="color:var(--text); text-decoration:none;">Библиотека БГТУ</a></div>
-        <div class="zone-box"><b>🥃 ВИСКЪ "АРТЕЛЬНЫЙ"</b><a href="http://radiopotok.ru" target="_blank" style="color:var(--text); text-decoration:none;">Радио / Музыка</a></div>
-    </div>
-
-    <div class="page" :class="{'active': p === 8}">
-        <div class="card" style="text-align:center; background:#fff;"><div id="qrcode"></div></div>
-    </div>
 </div>
 
 <nav class="nav-bar">
@@ -116,31 +131,29 @@
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            p: 1, today: '', isReg: localStorage.getItem('reg_v5') || false,
-            userName: localStorage.getItem('user_v5') || '',
-            msgs: [], boxItems: [], boxNote: '',
-            zapovedi: ['Изолента — всему голова','Мат сокращает время ремонта на 30%','Лишняя деталь — это запасная','Не лезь в работающий узел','Чистый инструмент — залог успеха','Семь раз отмерь — один раз завари','Уважай мазуту','Не уверен — не крути','Артель — это семья','Перекур — это святое'],
-            links: [{n:'Google Gemini', u:'https://gemini.google.com'}, {n:'Suno AI (Music)', u:'https://suno.com'}, {n:'Notebook LM', u:'https://notebooklm.google.com'}, {n:'FlowGPT (Prompts)', u:'https://flowgpt.com'}],
-
+            p: 1, today: '', isReg: localStorage.getItem('reg_v7') || false,
+            userName: localStorage.getItem('user_v7') || '',
+            msgs: [],
+            zapovedi: ['Изолента — сила','Мат ускоряет ремонт','Лишних деталей нет','Не лезь — работает','Семь раз отмерь','Уважай мазуту','Инструмент — святое','Не уверен — не крути','Артель — семья','Перекур по ГОСТу'],
+            
             init() {
                 const d = new Date();
                 this.today = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
                 lucide.createIcons();
                 this.genQR();
-                if(db) { this.load(); }
+                if(db) this.load();
             },
             refresh() { setTimeout(() => lucide.createIcons(), 50); },
-            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg_v5', true); localStorage.setItem('user_v5', this.userName); }},
+            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg_v7', true); localStorage.setItem('user_v7', this.userName); }},
             async load() {
-                const {data:m} = await db.from('messages').select('*').order('id',{ascending:false}).limit(15);
+                const {data:m} = await db.from('messages').select('*').order('id',{ascending:false}).limit(10);
                 if(m) this.msgs = m.reverse();
-                const {data:b} = await db.from('boxes').select('*');
-                if(b) this.boxItems = b;
             },
             async sendM() { if(!this.newM) return; await db.from('messages').insert([{username:this.userName, text:this.newM}]); this.newM = ''; },
-            async saveBox() { if(!this.boxNote) return; await db.from('boxes').insert([{content:this.boxNote, user_name:this.userName}]); this.boxNote = ''; },
-            async deleteBox(id) { await db.from('boxes').delete().eq('id', id); },
-            genQR() { const qr = qrcode(0, 'M'); qr.addData(window.location.href); qr.make(); document.getElementById('qrcode').innerHTML = qr.createImgTag(4); }
+            genQR() { 
+                const qr = qrcode(0, 'M'); qr.addData(window.location.href); qr.make();
+                document.getElementById('qrcode').innerHTML = qr.createImgTag(4);
+            }
         }));
     });
 </script>
