@@ -3,227 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>АРТЕЛЬ: ГЛОБАЛЬНОЕ ОБНОВЛЕНИЕ</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>АРТЕЛЬ: ТЕРМИНАЛ v4.1</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
         [x-cloak] { display: none !important; }
-        :root { --blue: #0047ab; --steel: #bdc3c7; --oil: #0a0a0a; --neon: #ff5e00; }
+        :root { --blue: #0047ab; --neon: #ff5e00; --bg: #0a0a0a; --card: #151515; --steel: #bdc3c7; }
         
-        /* Стили тем */
-        .theme-rarity { --blue: #5d4037; --neon: #d84315; --oil: #1a1a1a; --steel: #a1887f; font-family: 'Georgia', serif; }
-        .theme-new { --blue: #00d2ff; --neon: #00ff88; --oil: #050505; --steel: #e0e0e0; font-family: 'Segoe UI', sans-serif; }
+        .theme-rarity { --blue: #4a3b31; --neon: #c19a6b; --bg: #1e1e1e; --card: #2a241f; --steel: #d4c4a8; }
+        .theme-new { --blue: #00f2ff; --neon: #ff0055; --bg: #000; --card: #080808; --steel: #ffffff; }
 
-        body { background: var(--oil); color: var(--steel); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 80px; transition: 0.5s; }
+        body { background: var(--bg); color: var(--steel); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 80px; }
         header { background: #000; padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); position: sticky; top: 0; z-index: 100; }
-        .in-14 { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-weight: bold; }
-        .page { display: none; padding: 15px; max-width: 1200px; margin: 0 auto; }
-        .active { display: block; }
-        .gost-card { border: 1px solid var(--blue); background: rgba(0,71,171,0.05); padding: 15px; margin-bottom: 10px; border-left: 5px solid var(--blue); }
+        .neon-txt { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-weight: bold; text-transform: uppercase; }
         
-        /* Сетка Главной */
-        .main-grid { display: flex; flex-wrap: wrap; gap: 15px; }
-        .side-left { flex: 1.2; min-width: 300px; }
-        .side-right { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
+        .page { display: none; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .active { display: block; animation: powerOn 0.3s ease-out; }
+        @keyframes powerOn { from { opacity: 0; } to { opacity: 1; } }
 
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 15px; }
+        .dash-item { background: var(--card); border: 1px solid var(--blue); padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90px; }
+        .dash-item:hover { background: var(--blue); color: #fff; box-shadow: 0 0 15px var(--blue); }
+        .dash-item i { margin-bottom: 8px; width: 20px; }
+
+        .gost-card { border: 1px solid var(--blue); background: var(--card); padding: 15px; margin-bottom: 12px; border-left: 5px solid var(--blue); }
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 12px 0; border-top: 2px solid var(--blue); z-index: 1000; }
         .nav-item { color: #444; cursor: pointer; }
-        .nav-item.active { color: var(--neon); }
-        
-        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        input, select, textarea { width: 100%; padding: 10px; background: #000; border: 1px solid var(--blue); color: #fff; margin-top: 5px; box-sizing: border-box; }
-        
-        /* Курилка */
-        .zone { border: 2px solid var(--blue); margin-bottom: 20px; background: #000; }
-        .zone img { width: 100%; height: 180px; object-fit: cover; border-bottom: 2px solid var(--blue); }
-        .zone-info { padding: 15px; }
+        .nav-item.active { color: var(--neon); transform: scale(1.1); }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
-        th, td { border: 1px solid #333; padding: 6px; text-align: left; }
-        th { background: var(--blue); }
+        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; text-transform: uppercase; }
+        
+        /* Стили для ссылок в курилке */
+        .link-pill { display: inline-block; padding: 4px 10px; background: var(--blue); color: #fff; text-decoration: none; border-radius: 3px; font-size: 0.75rem; margin: 3px; font-weight: bold; }
+        .link-pill:hover { background: var(--neon); }
+
+        .smoke-zone { position: relative; border: 2px solid var(--blue); margin-bottom: 15px; background: #000; height: 180px; overflow: hidden; }
+        .smoke-zone img { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; filter: grayscale(1); }
+        .smoke-overlay { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 12px; box-sizing: border-box; border-top: 1px solid var(--blue); }
     </style>
 </head>
-<body x-data="artelApp" :class="currentTheme" x-init="init()" x-cloak>
+<body x-data="artelApp" :class="theme" x-init="init()" x-cloak>
 
 <header>
     <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-        <i data-lucide="wrench" class="in-14"></i>
-        <h2 style="margin: 0; font-size: 1rem;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</h2>
+        <i data-lucide="radio" class="neon-txt"></i>
+        <h2 style="margin: 0; font-size: 1rem;" class="neon-txt">АРТЕЛЬ-ТЕРМИНАЛ v4.1</h2>
     </div>
 </header>
 
-<div class="page" :class="{'active': page === 1}">
-    <div class="main-grid">
-        <div class="side-left">
-            <h3 class="in-14">📜 ЗАПОВЕДИ</h3>
-            <template x-for="(z, i) in zapovedi">
-                <div class="gost-card"><b x-text="(i+1) + '. ' + z.t"></b><p style="font-size:0.8rem; margin:5px 0" x-text="z.d"></p></div>
-            </template>
-        </div>
-        <div class="side-right">
-            <div class="gost-card">
-                <div class="in-14" style="text-align:center" x-text="today"></div>
-            </div>
-            <div class="gost-card">
-                <h3 class="in-14" style="text-align:center">🎖 ТВОЙ РАНГ</h3>
-                <div style="text-align:center; font-size:1.2rem; margin:10px 0" class="in-14" x-text="userRank"></div>
-                <div style="font-size:0.7rem; opacity:0.6; text-align:center">Мастодонты могут повышать статус других</div>
-            </div>
-        </div>
+<div class="page" :class="{'active': p === 1}">
+    <div class="gost-card" style="text-align:center">
+        <h3 class="neon-txt" style="margin:0" x-text="today"></h3>
+        <div style="font-size:0.8rem; opacity:0.6; margin-top:5px">Объект: Мастерская Артели</div>
+    </div>
+    <div class="gost-card">
+        <h3 class="neon-txt" style="font-size:0.9rem">ТВОЙ ТЕКУЩИЙ СТАТУС:</h3>
+        <div style="font-size: 1.5rem; border: 1px solid var(--neon); padding: 10px; text-align:center" class="neon-txt" x-text="userRank"></div>
+    </div>
+    <div class="gost-card">
+        <b class="neon-txt">УСТАВ:</b>
+        <p style="font-size:0.8rem">Мат — инструмент. Синяя изолента — решение. Лишние детали — залог легкости.</p>
     </div>
 </div>
 
-<div class="page" :class="{'active': page === 2}">
+<div class="page" :class="{'active': p === 2}">
     <div x-show="!isReg" class="gost-card">
-        <h3 class="in-14">РЕГИСТРАЦИЯ В ЦЕХУ</h3>
-        <input type="text" x-model="tempName" placeholder="Введи позывной...">
-        <button class="btn-pusker" @click="register()">ПОЛУЧИТЬ СТАТУС "ЛИЧИНКА"</button>
+        <h3 class="neon-txt">ВХОД В РАДИОЭФИР</h3>
+        <input type="text" x-model="tempName" style="width:100%; padding:10px; background:#000; border:1px solid var(--blue); color:#fff" placeholder="Позывной...">
+        <button class="btn-pusker" @click="register()">ПОЛУЧИТЬ ДОСТУП</button>
     </div>
     <div x-show="isReg">
-        <div class="in-14" style="margin-bottom:10px">В СЕТИ: <span x-text="userName" style="color:#fff"></span> (<span x-text="userRank"></span>)</div>
-        <div id="chat" style="height: 300px; overflow-y: auto; background: #000; border: 1px solid var(--blue); padding: 10px; margin-bottom: 10px;">
-            <template x-for="m in messages">
-                <div style="margin-bottom:10px; border-left: 2px solid var(--blue); padding-left:10px;">
-                    <small class="in-14" x-text="m.user + ' [' + m.rank + ']'"></small>
-                    <div x-text="m.text"></div>
+        <div id="chat" style="height: 350px; overflow-y: auto; border: 1px solid var(--blue); padding: 10px; background: #000; margin-bottom: 10px; font-size:0.85rem">
+            <template x-for="m in msgs">
+                <div style="margin-bottom: 10px; border-left: 2px solid var(--blue); padding-left: 10px;">
+                    <b class="neon-txt" x-text="m.u"></b> <small style="opacity:0.5" x-text="'['+m.r+']'"></small><br>
+                    <span x-text="m.t"></span>
                 </div>
             </template>
         </div>
-        <div style="display:flex; gap:5px"><input type="text" x-model="newMsg" @keyup.enter="sendMsg()"><button class="btn-pusker" style="width:80px; margin:0" @click="sendMsg()">></button></div>
-    </div>
-</div>
-
-<div class="page" :class="{'active': page === 3}">
-    <h3 class="in-14">📦 ЯЩИКИ (БЕЗЛИМИТ ФАЙЛОВ)</h3>
-    <div class="gost-card" style="border: 2px dashed var(--blue); text-align:center; padding:40px">
-        <i data-lucide="upload-cloud" style="width:48px; height:48px; margin-bottom:10px"></i><br>
-        <span>Зарегистрированные пользователи могут загружать файлы любых размеров</span><br>
-        <button class="btn-pusker" style="width:200px" @click="alert('Функция загрузки в облако требует настроенного Storage в Supabase')">ВЫБРАТЬ ФАЙЛ</button>
-    </div>
-    <div style="font-size:0.7rem; color:red; margin-top:10px">Удаление записей запрещено по ГОСТу.</div>
-</div>
-
-<div class="page" :class="{'active': page === 4}">
-    <h3 class="in-14">📐 ТЕХ-БАЗА</h3>
-    <div class="gost-card">
-        <b>ОБД-2 КОДЫ (Все марки):</b>
-        <table>
-            <tr><th>Код</th><th>Неисправность</th><th>Признак</th></tr>
-            <tr><td>P0300</td><td>Пропуски зажигания</td><td>Тряска, синий дым</td></tr>
-            <tr><td>P0171</td><td>Бедная смесь</td><td>Глохнет на холодную</td></tr>
-            <tr><td>P0500</td><td>Датчик скорости</td><td>Спидометр лежит</td></tr>
-        </table>
-    </div>
-    <div class="gost-card">
-        <b>ПОДШИПНИКИ / РЕЗЬБЫ:</b>
-        <table>
-            <tr><th>Тип</th><th>Размер/Параметр</th></tr>
-            <tr><td>M8x1.25</td><td>Сверло 6.8мм</td></tr>
-            <tr><td>203 подш.</td><td>17x40x12 (Генератор)</td></tr>
-            <tr><td>Сальник 2.2</td><td>45x60x10 (Коленвал)</td></tr>
-        </table>
-    </div>
-</div>
-
-<div class="page" :class="{'active': page === 5}">
-    <h3 class="in-14">🌐 СЕРВИСЫ (VPN REQUIRED)</h3>
-    <div class="gost-card"><a href="https://gemini.google.com" target="_blank" style="color:#fff">Google Gemini AI</a></div>
-    <div class="gost-card"><a href="https://suno.com" target="_blank" style="color:#fff">Suno Music AI</a></div>
-</div>
-
-<div class="page" :class="{'active': page === 6}">
-    <h3 class="in-14">🧠 ОБУЧЕНИЕ ПРОМТАМ</h3>
-    <div class="gost-card">
-        <b>Правило:</b> Действие + Объект + Стиль + Детали.<br>
-        <i>Пример: "Нарисуй (действие) трактор (объект) в стиле киберпанк (стиль) на гусеницах из золота (детали)".</i>
-    </div>
-    <button class="btn-pusker" onclick="window.open('https://promptcowboy.com')">ПРОМТ КОВБОЙ</button>
-    <button class="btn-pusker" onclick="window.open('https://lexica.art')">БАЗА ГОТОВЫХ ПРОМТОВ</button>
-</div>
-
-<div class="page" :class="{'active': page === 7}">
-    <div class="zone">
-        <img src="https://images.unsplash.com/photo-1626071445451-b06f3630656e?w=600" alt="сигареты">
-        <div class="zone-info">
-            <b class="in-14">🚬 ЗОНА 1: ЮМОР</b><br>
-            <a href="https://voka.tv" target="_blank" style="color:#fff">VOKA (Развлечения)</a> | <a href="https://onliner.by" target="_blank" style="color:#fff">Onliner</a>
-        </div>
-    </div>
-    <div class="zone">
-        <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=600" alt="кофе">
-        <div class="zone-info">
-            <b class="in-14">☕ ЗОНА 2: БИБЛИОТЕКИ</b><br>
-            <a href="https://e-lib.belstu.by" target="_blank" style="color:#fff">Библиотека БГТУ</a> | <a href="https://natlib.by" target="_blank" style="color:#fff">Нац. Библиотека РБ</a>
-        </div>
-    </div>
-    <div class="zone">
-        <img src="https://images.unsplash.com/photo-1527281400828-ac737a999b9a?w=600" alt="виски">
-        <div class="zone-info">
-            <b class="in-14">🥃 ЗОНА 3: МУЗЫКА И РАДИО</b><br>
-            <a href="http://radiopotok.ru" target="_blank" style="color:#fff">Радио Поток</a> | <a href="https://zaycev.net" target="_blank" style="color:#fff">Зайцев.нет</a>
+        <div style="display: flex; gap: 5px;">
+            <input type="text" x-model="newMsg" style="flex:1; padding:10px; background:#000; border:1px solid var(--blue); color:#fff" @keyup.enter="sendM()">
+            <button class="btn-pusker" style="width: 60px; margin:0" @click="sendM()">➤</button>
         </div>
     </div>
 </div>
 
-<div class="page" :class="{'active': page === 8}">
-    <h3 class="in-14">⚙️ НАСТРОЙКИ СИСТЕМЫ</h3>
+<div class="page" :class="{'active': p === 4}">
+    <h3 class="neon-txt">⚙️ ТЕХНИЧЕСКИЙ ПУЛЬТ</h3>
+    <div class="dash-grid">
+        <a href="https://podshypnik.info" target="_blank" class="dash-item"><i data-lucide="settings-2"></i><span>Подшипники</span></a>
+        <a href="https://obd2.su" target="_blank" class="dash-item"><i data-lucide="activity"></i><span>Коды OBD-II</span></a>
+        <a href="https://cyberleninka.ru" target="_blank" class="dash-item"><i data-lucide="graduation-cap"></i><span>CyberLeninka</span></a>
+        <a href="https://elpub.ru" target="_blank" class="dash-item"><i data-lucide="library"></i><span>Elpub.ru</span></a>
+        <a href="https://standartgost.ru" target="_blank" class="dash-item"><i data-lucide="file-check"></i><span>ГОСТы</span></a>
+        <a href="https://exist.by" target="_blank" class="dash-item"><i data-lucide="shopping-cart"></i><span>Exist (РБ)</span></a>
+    </div>
+</div>
+
+<div class="page" :class="{'active': p === 7}">
+    <div class="smoke-zone">
+        <img src="https://images.unsplash.com/photo-1527181152855-fc03fc7949c8?w=600" alt="юмор">
+        <div class="smoke-overlay">
+            <b class="neon-txt">🚬 ЮМОР И РАЗВЛЕЧЕНИЯ</b><br>
+            <a href="https://voka.tv" target="_blank" class="link-pill">VOKA TV</a>
+            <a href="https://pikabu.ru" target="_blank" class="link-pill">PIKABU</a>
+            <a href="https://onliner.by" target="_blank" class="link-pill">ONLINER</a>
+        </div>
+    </div>
+
+    <div class="smoke-zone">
+        <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600" alt="кофе">
+        <div class="smoke-overlay">
+            <b class="neon-txt">☕ КОФЕ МАСТОДОНТ (АРХИВЫ)</b><br>
+            <a href="http://zhurnalko.net/journal-35" target="_blank" class="link-pill">ЛЕВША (Архив)</a>
+            <a href="http://modelist-konstruktor.com/archive" target="_blank" class="link-pill">МОДЕЛИСТ-К.</a>
+            <a href="https://natlib.by" target="_blank" class="link-pill">НАЦ.БИБЛИОТЕКА</a>
+        </div>
+    </div>
+
+    <div class="smoke-zone">
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600" alt="музыка">
+        <div class="smoke-overlay">
+            <b class="neon-txt">🥃 ВИСКИ ГОСТ (ЭФИР)</b><br>
+            <a href="http://radiopotok.ru" target="_blank" class="link-pill">РАДИО РБ</a>
+            <a href="https://hitmo.me" target="_blank" class="link-pill">HITMO</a>
+            <a href="https://zaycev.net" target="_blank" class="link-pill">ЗАЙЦЕВ.НЕТ</a>
+        </div>
+    </div>
+</div>
+
+<div class="page" :class="{'active': p === 8}">
+    <h3 class="neon-txt">⚙️ ТЮНИНГ</h3>
     <div class="gost-card">
-        Выбери стиль:<br>
-        <button class="btn-pusker" @click="currentTheme=''">КЛАССИКА (СИНЯЯ ИЗОЛЕНТА)</button>
-        <button class="btn-pusker" @click="currentTheme='theme-rarity'">РАРИТЕТНЫЙ АВТОМОБИЛЬ</button>
-        <button class="btn-pusker" @click="currentTheme='theme-new'">НОВЫЙ АВТОМОБИЛЬ</button>
+        <button class="btn-pusker" @click="theme=''">КЛАССИКА</button>
+        <button class="btn-pusker" @click="theme='theme-rarity'">РАРИТЕТ (ГАЗ-24)</button>
+        <button class="btn-pusker" @click="theme='theme-new'">NEW (FUTURE)</button>
     </div>
     <div class="gost-card" style="text-align:center">
-        <b>QR-КОД ДЛЯ СВЯЗИ:</b><br><br>
+        <b>QR ДЛЯ КОЛЛЕГ</b><br><br>
         <div id="qrcode" style="background:#fff; padding:10px; display:inline-block"></div>
     </div>
 </div>
 
+<div class="page" :class="{'active': p === 3}"><h3 class="neon-txt">📦 ЯЩИКИ</h3><div class="gost-card" style="border:2px dashed var(--blue); text-align:center; padding:40px">Загрузка файлов любого размера разрешена.</div></div>
+<div class="page" :class="{'active': p === 5}"><h3 class="neon-txt">🧠 ПРОМТЫ</h3><button class="btn-pusker" onclick="window.open('https://promptcowboy.com')">ПРОМТ КОВБОЙ</button></div>
+<div class="page" :class="{'active': p === 6}"><h3 class="neon-txt">🤖 ИИ</h3><div class="dash-grid"><a href="https://gemini.google.com" target="_blank" class="dash-item">Gemini</a></div></div>
+
 <nav class="nav-bar">
-    <div class="nav-item" :class="{'active': page === 1}" @click="page=1"><i data-lucide="home"></i></div>
-    <div class="nav-item" :class="{'active': page === 2}" @click="page=2"><i data-lucide="message-circle"></i></div>
-    <div class="nav-item" :class="{'active': page === 3}" @click="page=3"><i data-lucide="package"></i></div>
-    <div class="nav-item" :class="{'active': page === 4}" @click="page=4"><i data-lucide="book-open"></i></div>
-    <div class="nav-item" :class="{'active': page === 6}" @click="page=6"><i data-lucide="brain"></i></div>
-    <div class="nav-item" :class="{'active': page === 7}" @click="page=7"><i data-lucide="coffee"></i></div>
-    <div class="nav-item" :class="{'active': page === 8}" @click="page=8"><i data-lucide="settings"></i></div>
+    <div class="nav-item" :class="{'active': p === 1}" @click="p=1"><i data-lucide="home"></i></div>
+    <div class="nav-item" :class="{'active': p === 2}" @click="p=2"><i data-lucide="message-square"></i></div>
+    <div class="nav-item" :class="{'active': p === 3}" @click="p=3"><i data-lucide="box"></i></div>
+    <div class="nav-item" :class="{'active': p === 4}" @click="p=4"><i data-lucide="wrench"></i></div>
+    <div class="nav-item" :class="{'active': p === 5}" @click="p=5"><i data-lucide="brain"></i></div>
+    <div class="nav-item" :class="{'active': p === 7}" @click="p=7"><i data-lucide="coffee"></i></div>
+    <div class="nav-item" :class="{'active': p === 8}" @click="p=8"><i data-lucide="settings"></i></div>
 </nav>
 
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            page: 1, currentTheme: '',
+            p: 1, theme: '',
             isReg: localStorage.getItem('artel_reg') || false,
             userName: localStorage.getItem('artel_name') || '',
             userRank: localStorage.getItem('artel_rank') || 'Личинка инженера',
-            tempName: '', today: new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'}),
-            newMsg: '', messages: [{user:'СИСТЕМА', rank:'АДМИН', text:'Смена начата. Добро пожаловать.'}],
-            zapovedi: [
-                {t:'ТБ — не догма', d:'Но помни, запасных пальцев в Артели не выдают.'},
-                {t:'Закон лишней детали', d:'Остались болты? Это твоя заслуга в оптимизации веса.'},
-                {t:'Синяя изолента', d:'Лечит всё, от радиатора до разбитого сердца.'},
-                {t:'Уважение к Мастодонтам', d:'Слушай ворчание деда — в нем опыт трех капремонтов.'},
-                {t:'Инструмент — святое', d:'Взял ключ — верни чистым. Взял изоленту — найди край!'}
-            ],
-            
-            init() {
-                lucide.createIcons();
-                this.genQR();
-                // Тут можно добавить загрузку сообщений из Supabase
-            },
+            tempName: '', 
+            today: new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'long'}),
+            newMsg: '', msgs: [{u:'АРТЕЛЬ', r:'СИСТЕМА', t:'Терминал обновлен. Ссылки на журналы добавлены.'}],
+            init() { lucide.createIcons(); this.genQR(); },
             register() {
                 if(this.tempName.length < 2) return;
                 this.userName = this.tempName;
-                this.userRank = 'Личинка инженера';
                 this.isReg = true;
                 localStorage.setItem('artel_reg', true);
                 localStorage.setItem('artel_name', this.userName);
                 localStorage.setItem('artel_rank', this.userRank);
             },
-            sendMsg() {
+            sendM() {
                 if(!this.newMsg) return;
-                this.messages.push({user: this.userName, rank: this.userRank, text: this.newMsg});
+                this.msgs.push({u: this.userName, r: this.userRank, t: this.newMsg});
                 this.newMsg = '';
             },
             genQR() {
