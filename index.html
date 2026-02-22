@@ -2,154 +2,409 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>АРТЕЛЬ v3.0 MOBILE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>АРТЕЛЬ: ГЛАВНЫЙ ЦЕХ</title>
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
 
     <style>
-        :root { --blue: #0047ab; --neon: #ff5e00; --bg: #0a0a0a; --text: #bdc3c7; }
         [x-cloak] { display: none !important; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding-bottom: 80px; }
-        header { padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); background: #000; color: var(--neon); font-weight: bold; font-size: 1rem; }
+        :root { --blue-tape: #0047ab; --neon: #ff5e00; --steel: #bdc3c7; }
+        body { background: #111; color: var(--steel); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; }
         
-        .page { display: none; padding: 10px; max-width: 1000px; margin: 0 auto; }
+        .page { display: none; padding: 20px; }
         .active { display: block !important; }
-
-        /* Адаптивная сетка */
-        .grid-main { display: flex; flex-wrap: wrap; gap: 10px; }
-        .column-left { flex: 1.5; min-width: 300px; }
-        .column-right { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 10px; }
         
-        .card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; border-left: 4px solid var(--blue); }
+        .gost-card { border: 1px solid var(--blue-tape); padding: 15px; margin-bottom: 10px; background: rgba(0,71,171,0.1); border-left: 4px solid var(--blue-tape); }
+        .neon-text { color: var(--neon); text-shadow: 0 0 5px var(--neon); }
         
-        /* Нижнее меню */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--blue); z-index: 9999; }
-        .nav-item { color: #555; cursor: pointer; text-align: center; flex: 1; }
-        .nav-item.active { color: var(--neon); }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue-tape); box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
+        .nav-item { color: #555; cursor: pointer; transition: 0.3s; }
+        .nav-item.active-nav { color: var(--neon); transform: translateY(-5px); }
         
-        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
-        input { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid var(--blue); box-sizing: border-box; }
-        
-        .zone-box { border: 2px solid var(--blue); margin-bottom: 10px; text-align: center; background: #000; }
-        .zone-box img { width: 100%; height: 100px; object-fit: cover; }
-        
-        .rank-badge { color: var(--neon); border: 1px solid var(--neon); padding: 8px; display: inline-block; font-weight: bold; font-size: 1.1rem; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
+        th { background: var(--blue-tape); color: white; }
+        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--blue-tape); color: white; box-sizing: border-box; }
     </style>
 </head>
-<body x-data="artelApp" x-init="init()">
+<body x-data="artelCore" x-cloak>
 
-<header>🛠 АРТЕЛЬ ФОРДОВА И БЕНЦОВА 🛠</header>
+    <header style="padding: 15px; text-align: center; background: #000; border-bottom: 1px solid var(--blue-tape);">
+        <h1 style="margin: 0; font-size: 1rem; letter-spacing: 2px;" class="neon-text">🛠 АРТЕЛЬ: ГЛАВНЫЙ ЦЕХ</h1>
+    </header>
 
-<div x-cloak>
-    <div class="page" :class="{'active': p === 1}">
-        <div class="grid-main">
-            <div class="column-left">
-                <div class="card">
-                    <strong style="color:var(--neon)">📜 УСТАВ АРТЕЛИ</strong>
-                    <div style="font-size:0.85rem; margin-top:10px; line-height: 1.4;">
-                        <template x-for="(z, i) in zapovedi">
-                            <div style="margin-bottom:8px;"><b x-text="(i+1) + '.'"></b> <span x-text="z"></span></div>
-                        </template>
-                    </div>
+    <div :class="{ 'active': page === 1 }" class="page">
+        <div class="gost-card">
+            <div class="neon-text" style="font-weight: bold;" x-text="currentHoliday"></div>
+            <div style="font-size: 0.8rem; font-style: italic; margin-top: 5px;" x-text="dailyQuote"></div>
+        </div>
+        <h3 class="neon-text">ЗАПОВЕДИ МАСТЕРОВ</h3>
+        <template x-for="(z, i) in zapovedi" :key="i">
+            <div class="gost-card" style="font-size: 0.85rem;" x-text="(i+1) + '. ' + z"></div>
+        </template>
+    </div>
+
+    <div :class="{ 'active': page === 2 }" class="page">
+        <h3 class="neon-text">РАДИОРУБКА</h3>
+        <div style="height: 300px; overflow-y: auto; border: 1px solid var(--blue-tape); background: #000; padding: 10px; margin-bottom: 10px;">
+            <template x-for="m in messages">
+                <div style="margin-bottom: 10px; border-left: 2px solid var(--blue-tape); padding-left: 10px;">
+                    <small class="neon-text" x-text="m.user"></small><br>
+                    <span x-text="m.text"></span>
                 </div>
-            </div>
-            <div class="column-right">
-                <div class="card" style="text-align:center;">
-                    <b style="color:var(--neon)">📅 ДАТА</b><br>
-                    <div style="font-size:1.2rem; margin-top:10px;" x-text="today"></div>
-                </div>
-                <div class="card" style="text-align:center;">
-                    <b style="color:var(--neon)">🎖 РАНГ</b><br>
-                    <div class="rank-badge">МАСТАДОНТ</div>
-                </div>
-            </div>
+            </template>
+        </div>
+        <div style="display: flex; gap: 5px;">
+            <input type="text" x-model="msg" placeholder="Приём...">
+            <button @click="sendMsg" style="background: var(--blue-tape); border: none; color: white; padding: 0 20px;">ПУСК</button>
         </div>
     </div>
 
-    <div class="page" :class="{'active': p === 2}">
-        <div class="card" x-show="!isReg">
-            <b>ВХОД</b>
-            <input type="text" x-model="userName" placeholder="Позывной...">
-            <button class="btn-pusker" @click="register()">ОК</button>
-        </div>
-        <div x-show="isReg">
-            <div id="chat-win" style="height:300px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000; margin-bottom:10px; font-size:0.9rem;">
-                <template x-for="m in msgs">
-                    <div style="margin-bottom:8px; border-left:2px solid var(--blue); padding-left:8px;">
-                        <small style="color:var(--neon)" x-text="m.username"></small>: <span x-text="m.text"></span>
-                    </div>
+    <div :class="{ 'active': page === 4 }" class="page">
+        <h3 class="neon-text">ГОСТ 24705 (РЕЗЬБЫ)</h3>
+        
+        <table>
+            <thead><tr><th>M</th><th>Шаг</th><th>Сверло</th></tr></thead>
+            <tbody>
+                <template x-for="r in rezba">
+                    <tr><td x-text="r.m"></td><td x-text="r.s"></td><td x-text="r.d" class="neon-text"></td></tr>
                 </template>
+            </tbody>
+        </table>
+        
+        <h3 class="neon-text" style="margin-top: 25px;">ДИАГНОСТИКА OBD-II</h3>
+        <input type="text" x-model="obdQuery" placeholder="P0300...">
+        <div style="margin-top: 10px; padding: 15px; background: #000; border: 1px solid var(--neon); min-height: 40px;" x-text="scanOBD()"></div>
+    </div>
+
+    <div :class="{ 'active': page === 8 }" class="page">
+        <h3 class="neon-text">СВЯЗЬ И НАСТРОЙКИ</h3>
+        <div id="qrcode" style="display: flex; justify-content: center; background: #fff; padding: 15px; border: 4px solid var(--blue-tape);"></div>
+        <p style="text-align: center; font-size: 0.7rem; margin-top: 15px;">QR-КОД ДЛЯ ВХОДА С ДРУГОГО УСТРОЙСТВА</p>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item" :class="{'active-nav': page === 1}" @click="setPage(1)"><i data-lucide="home"></i></div>
+        <div class="nav-item" :class="{'active-nav': page === 2}" @click="setPage(2)"><i data-lucide="message-circle"></i></div>
+        <div class="nav-item" :class="{'active-nav': page === 4}" @click="setPage(4)"><i data-lucide="wrench"></i></div>
+        <div class="nav-item" :class="{'active-nav': page === 8}" @click="setPage(8)"><i data-lucide="settings"></i></div>
+    </nav>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('artelCore', () => ({
+                page: 1,
+                msg: '',
+                messages: [{user: 'СИСТЕМА', text: 'Смена начата. Связь в норме.'}],
+                obdQuery: '',
+                currentHoliday: 'Будни в Артели',
+                dailyQuote: 'Если не крутится — возьми рычаг больше.',
+                
+                zapovedi: [
+                    "ТБ — не догма, а рекомендация.",
+                    "Синяя изолента лечит всё.",
+                    "Лишняя деталь — это оптимизация веса.",
+                    "Мат — ускоритель процесса."
+                ],
+                
+                rezba: [
+                    {m:'M6', s:'1.0', d:'5.0'}, 
+                    {m:'M8', s:'1.25', d:'6.8'}, 
+                    {m:'M10', s:'1.5', d:'8.5'}, 
+                    {m:'M12', s:'1.75', d:'10.2'}
+                ],
+
+                init() {
+                    this.renderIcons();
+                    this.generateQR();
+                },
+
+                setPage(p) {
+                    this.page = p;
+                    this.$nextTick(() => this.renderIcons());
+                },
+
+                renderIcons() {
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                },
+
+                sendMsg() {
+                    if (!this.msg) return;
+                    this.messages.push({user: 'МАСТЕР', text: this.msg});
+                    this.msg = '';
+                },
+
+                scanOBD() {
+                    const codes = {
+                        "P0300": "Пропуски зажигания. Проверь свечи.",
+                        "P0171": "Бедная смесь. Ищи подсос воздуха.",
+                        "P0500": "Датчик скорости. Оборвана цепь."
+                    };
+                    return codes[this.obdQuery.toUpperCase()] || "Код не найден. Попробуй обмотать изолентой.";
+                },
+
+                generateQR() {
+                    if (window.qrcode) {
+                        const qr = qrcode(0, 'M');
+                        qr.addData(window.location.href);
+                        qr.make();
+                        document.getElementById('qrcode').innerHTML = qr.createImgTag(5);
+                    }
+                }
+            }));
+        });
+    </script>
+</body>
+</html>
+
+Хороший код для дорабтки
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>АРТЕЛЬ ФОРДОВА И БЕНЦОВА</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        :root { --blue: #0047ab; --steel: #bdc3c7; --oil: #0a0a0a; --neon: #ff5e00; --rust: #8b4513; }
+        body { background: var(--oil); color: var(--steel); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        header { background: #000; padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); position: sticky; top: 0; z-index: 100; }
+        .in-14 { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-weight: bold; }
+        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .active { display: block; }
+        .gost-card { border: 1px solid var(--blue); background: rgba(0,71,171,0.05); padding: 15px; margin-bottom: 10px; border-left: 5px solid var(--blue); }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 12px 0; border-top: 2px solid var(--blue); z-index: 1000; }
+        .nav-item { color: #444; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--neon); transform: scale(1.1); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 10px; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+        th { background: var(--blue); color: white; }
+        input, select, textarea { width: 100%; padding: 10px; background: #000; border: 1px solid var(--blue); color: #fff; margin-top: 5px; box-sizing: border-box; }
+        .btn-pusker { background: var(--blue); color: white; border: none; padding: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.7rem; }
+        .day-name { color: var(--blue); font-weight: bold; padding-bottom: 5px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body x-data="artelApp" x-cloak>
+
+<header>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+        <i data-lucide="cog" class="in-14"></i>
+        <h2 style="margin: 0; font-size: 1.1rem;">АРТЕЛЬ ФОРДОВА И БЕНЦОВА</h2>
+        <i data-lucide="cog" class="in-14"></i>
+    </div>
+</header>
+
+<div class="page" :class="{'active': page === 1}">
+    <div class="gost-card">
+        <div class="in-14" x-text="holidayInfo"></div>
+        <div class="cal-grid" style="margin-top:10px">
+            <template x-for="dn in ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']"><div class="day-name" x-text="dn"></div></template>
+            <template x-for="d in calendar"><div :class="{'in-14': d.isToday}" style="padding:4px" x-text="d.day"></div></template>
+        </div>
+        <div style="margin-top:10px; border-top: 1px solid #333; padding-top:5px; font-size: 0.8rem;">
+            <div x-text="'Мерфи: ' + murphy"></div>
+            <div x-text="'Оккам: ' + occam" style="color: var(--blue)"></div>
+        </div>
+    </div>
+
+    <h3 class="in-14">📋 10 ЗАПОВЕДЕЙ</h3>
+    <template x-for="(z, i) in zapovedi">
+        <div class="gost-card"><strong x-text="(i+1) + '. ' + z.t"></strong><p style="font-size:0.8rem; margin:5px 0" x-text="z.d"></p></div>
+    </template>
+
+    <h3 class="in-14">📶 ТАБЕЛЬ О РАНГАХ</h3>
+    <div class="gost-card" style="font-size: 0.8rem">
+        <template x-for="r in rangs"><div><span class="in-14" x-text="r.lvl + '. '"></span><span x-text="r.n"></span></div></template>
+    </div>
+
+    <h3 class="in-14">📜 СИСТЕМА ГОСТов</h3>
+    <div class="gost-card" style="font-size: 0.8rem">
+        <template x-for="g in gosts"><div><strong x-text="g.id + ': '"></strong><span x-text="g.t"></span></div></template>
+    </div>
+</div>
+
+<div class="page" :class="{'active': page === 2}">
+    <h3 class="in-14">РАДИОРУБКА (ЧАТ)</h3>
+    <div class="gost-card">
+        Роль: <select x-model="userRole" style="width: auto"><option>Гость</option><option>Мастер</option><option>Админ</option></select>
+    </div>
+    <div id="chat" style="height: 300px; overflow-y: auto; background: #000; border: 1px solid var(--blue); padding: 10px;">
+        <template x-for="m in messages">
+            <div style="margin-bottom:10px; border-left: 2px solid var(--blue); padding-left:10px;">
+                <small :class="m.r === 'Админ' ? 'in-14' : ''" x-text="m.u + ' [' + m.r + ']'"></small>
+                <div x-text="m.t"></div>
             </div>
-            <div style="display:flex; gap:5px;"><input type="text" x-model="newM"><button @click="sendM()" class="btn-pusker" style="width:60px; margin:0;">></button></div>
-        </div>
+        </template>
     </div>
+    <textarea x-model="newMsg" placeholder="Текст сообщения..."></textarea>
+    <button class="btn-pusker" @click="sendMsg()">ПУСК (ОТПРАВИТЬ)</button>
+</div>
 
-    <div class="page" :class="{'active': p === 7}">
-        <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1626071445451-b06f3630656e?w=300" alt="табак">
-            <div style="padding:10px;"><b>🚬 ТАБАК</b><br><a href="https://onliner.by" target="_blank" style="color:#fff;">Onliner</a></div>
-        </div>
-        <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=300" alt="кофе">
-            <div style="padding:10px;"><b>☕ КОФЕ</b><br><a href="https://e-lib.belstu.by" target="_blank" style="color:#fff;">БГТУ</a></div>
-        </div>
-        <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1527281400828-ac737a999b9a?w=300" alt="виски">
-            <div style="padding:10px;"><b>🥃 ВИСКИ</b><br><a href="http://radiopotok.ru" target="_blank" style="color:#fff;">Радио</a></div>
-        </div>
+<div class="page" :class="{'active': page === 3}">
+    <h3 class="in-14">ЗАНАЧКА</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+        <button class="btn-pusker" @click="subPage=1">БИРЖА</button>
+        <button class="btn-pusker" @click="subPage=2">СОВЕТЫ</button>
+        <button class="btn-pusker" @click="subPage=3">АРХИВ</button>
+        <button class="btn-pusker" @click="subPage=4">ЯЩИК НЗ</button>
     </div>
+    <div class="gost-card" style="margin-top:10px">
+        <template x-if="subPage==1"><div><strong>БИРЖА:</strong> Обмен запчастями. Трамблер на пиво.</div></template>
+        <template x-if="subPage==2"><div><strong>ВРЕДНЫЕ СОВЕТЫ:</strong> Лей масло в антифриз - будет мягче!</div></template>
+        <template x-if="subPage==3"><div><strong>АРХИВ:</strong> Схема проводки МТЗ-80, чертеж втулки.</div></template>
+        <template x-if="subPage==4"><div><strong>ЯЩИК НЗ:</strong> Набор ключей и пол-литра тормозухи.</div></template>
+    </div>
+</div>
 
-    <div class="page" :class="{'active': p === 3}"><div class="card">СКЛАД</div></div>
-    <div class="page" :class="{'active': p === 4}"><div class="card">АРХИВ</div></div>
-    <div class="page" :class="{'active': p === 5}"><div class="card">ПРОМТЫ</div></div>
-    <div class="page" :class="{'active': p === 6}"><div class="card">СЕРВИСЫ</div></div>
-    <div class="page" :class="{'active': p === 8}"><div class="card" style="text-align:center; background:#fff;"><div id="qrcode"></div></div></div>
+<div class="page" :class="{'active': page === 4}">
+    <h3 class="in-14">ТЕХ-СПРАВОЧНИК</h3>
+    <input type="text" x-model="search" placeholder="Поиск (OBD, резьба, сальник...)">
+    <table>
+        <thead><tr><th>Категория</th><th>Параметры / Код</th><th>Суть</th></tr></thead>
+        <tbody>
+            <template x-for="r in filteredData">
+                <tr><td x-text="r.c"></td><td x-text="r.p" class="in-14"></td><td x-text="r.s"></td></tr>
+            </template>
+        </tbody>
+    </table>
+</div>
+
+<div class="page" :class="{'active': page === 5}">
+    <h3 class="in-14">ИНТЕГРАЦИИ (НУЖЕН VPN)</h3>
+    <p style="color:red; font-size:0.7rem">Для работы с сервисами ИИ нужно установить VPN!</p>
+    <div class="gost-card"><a href="https://gemini.google.com" target="_blank">🤖 Google Gemini</a></div>
+    <div class="gost-card"><a href="https://canva.com" target="_blank">🎨 Canva Design</a></div>
+    <div class="gost-card"><a href="https://notebooklm.google.com" target="_blank">📚 Notebook LM</a></div>
+    <div class="gost-card"><a href="https://www.qwenlm.ai" target="_blank">🐲 Qwen3 AI</a></div>
+    <div class="gost-card"><a href="https://suno.com" target="_blank">🎸 Suno (AI Музыка)</a></div>
+    <div class="gost-card"><a href="https://1.1.1.1" target="_blank">🛡 Бесплатный VPN</a></div>
+</div>
+
+<div class="page" :class="{'active': page === 6}">
+    <h3 class="in-14">ГЕНЕРАТОР ПРОМТОВ</h3>
+    <div class="gost-card" x-text="currentPrompt" style="min-height: 100px;"></div>
+    <button class="btn-pusker" @click="shufflePrompt()">НОВАЯ ИДЕЯ</button>
+</div>
+
+<div class="page" :class="{'active': page === 7}">
+    <h3 class="in-14">ГАРАЖНЫЕ БАЙКИ</h3>
+    <div class="gost-card" x-text="currentJoke" style="min-height: 100px;"></div>
+    <button class="btn-pusker" @click="shuffleJoke()">ЕЩЁ!</button>
+</div>
+
+<div class="page" :class="{'active': page === 8}">
+    <h3 class="in-14">НАСТРОЙКИ</h3>
+    <div class="gost-card">
+        Тема: <select x-model="theme"><option>Синяя изолента</option><option>Ржавая сталь</option><option>Мазут</option></select>
+    </div>
+    <div id="qrcode" style="background:#fff; padding:10px; display:inline-block; margin-top:10px;"></div>
 </div>
 
 <nav class="nav-bar">
-    <template x-for="(ic, i) in ['home','message-square','package','wrench','brain','zap','coffee','settings']">
-        <div class="nav-item" :class="{'active': p === (i+1)}" @click="p=(i+1); refresh()">
-            <i :data-lucide="ic" style="width:24px; height:24px;"></i>
-        </div>
-    </template>
+    <div class="nav-item" :class="{'active': page === 1}" @click="page=1"><i data-lucide="home"></i></div>
+    <div class="nav-item" :class="{'active': page === 2}" @click="page=2"><i data-lucide="message-circle"></i></div>
+    <div class="nav-item" :class="{'active': page === 3}" @click="page=3"><i data-lucide="box"></i></div>
+    <div class="nav-item" :class="{'active': page === 4}" @click="page=4"><i data-lucide="book-open"></i></div>
+    <div class="nav-item" :class="{'active': page === 5}" @click="page=5"><i data-lucide="zap"></i></div>
+    <div class="nav-item" :class="{'active': page === 6}" @click="page=6"><i data-lucide="brain"></i></div>
+    <div class="nav-item" :class="{'active': page === 7}" @click="page=7"><i data-lucide="smile"></i></div>
+    <div class="nav-item" :class="{'active': page === 8}" @click="page=8"><i data-lucide="settings"></i></div>
 </nav>
 
 <script>
-    const _URL = 'https://grsszunlfmehyykkvccj.supabase.co';
-    const _KEY = 'sb_publishable_lOjqRJ2R_tHLo0GiLPjaYA_6UYCfCaX';
-    let db = null;
-    try { db = supabase.createClient(_URL, _KEY); } catch(e) {}
-
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            p: 1, today: new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'long'}), 
-            isReg: localStorage.getItem('reg_v9') || false,
-            userName: localStorage.getItem('user_v9') || '',
-            msgs: [],
-            zapovedi: ['Изолента — сила','Мат ускоряет','Нет лишних деталей','Не лезь — работает','Семь раз отмерь','Уважай мазуту','Инструмент — святое','Не уверен — не крути','Артель — семья','Перекур!'],
-            
+            page: 1, subPage: 1, search: '', theme: 'Синяя изолента',
+            userRole: 'Гость', newMsg: '', 
+            messages: [{u:'Админ', r:'Админ', t:'Добро пожаловать в цех!'}],
+            holidayInfo: 'Будни в Артели',
+            murphy: '', occam: '', currentPrompt: '', currentJoke: '',
+            calendar: [],
+            zapovedi: [
+                {t:'ТБ — не догма', d:'Но помни, запасных пальцев в Артели не выдают.'},
+                {t:'Закон лишней детали', d:'Остались болты? Это твоя заслуга в оптимизации веса.'},
+                {t:'Синяя изолента', d:'Лечит всё, от радиатора до разбитого сердца.'},
+                {t:'Уважение к Мастодонтам', d:'Слушай ворчание деда — в нем опыт трех капремонтов.'},
+                {t:'Инструмент — святое', d:'Взял ключ — верни чистым. Взял изоленту — найди край!'},
+                {t:'Мат — необходимость', d:'Допускается как ускоритель прикипевших соединений.'},
+                {t:'На глазок — точнейший прибор', d:'Если глаз наметан, микрометр не нужен.'},
+                {t:'Никогда не сдавайся', d:'Если не крутится — возьми рычаг побольше.'},
+                {t:'Делись схемами', d:'Скрывать решение — грех против прогресса.'},
+                {t:'Обмыл — значит, закрепил', d:'Запуск без заземления ведет к коррозии.'}
+            ],
+            rangs: [
+                {lvl:1, n:'Личинка инженера'}, {lvl:2, n:'Подмастерье с напильником'},
+                {lvl:3, n:'Мастер Тяп-ляп'}, {lvl:4, n:'Конструктор Хаоса'},
+                {lvl:5, n:'Мастодонт'}, {lvl:6, n:'Гранд-мастер Синей Катушки'}
+            ],
+            gosts: [
+                {id:'001', t:'О матюках (разрешены для М24)'}, {id:'002', t:'О точности (норм, втирочку)'},
+                {id:'003', t:'Об изоленте (только синяя)'}, {id:'004', t:'О лишних деталях (банка из-под монпансье)'}
+            ],
+            techData: [
+                {c:'OBD-II', p:'P0300', s:'Пропуски зажигания (свечи/катушки)'},
+                {c:'OBD-II', p:'P0171', s:'Бедная смесь (подсос воздуха)'},
+                {c:'Резьба', p:'M6', s:'Шаг 1.0, сверло 5.0мм'},
+                {c:'Резьба', p:'M8', s:'Шаг 1.25, сверло 6.8мм'},
+                {c:'Подшипник', p:'203', s:'17x40x12 мм (генератор)'},
+                {c:'Трактор', p:'МТЗ-80', s:'Зазор клапанов 0.25-0.30мм'},
+                {c:'С/Х', p:'Комбайн', s:'Проверка натяжения цепи привода'}
+            ],
+
             init() {
                 lucide.createIcons();
-                this.genQR();
-                if(db) this.load();
+                this.updateCalendar();
+                this.shufflePrompt();
+                this.shuffleJoke();
+                this.murphy = "Если что-то может пойти не так, оно пойдет не так.";
+                this.occam = "Не следует множить сущности без необходимости.";
             },
-            refresh() { setTimeout(() => lucide.createIcons(), 100); },
-            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg_v9', true); localStorage.setItem('user_v9', this.userName); }},
-            async load() {
-                const {data:m} = await db.from('messages').select('*').order('id',{ascending:false}).limit(10);
-                if(m) this.msgs = m.reverse();
+
+            updateCalendar() {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                let firstDay = start.getDay(); 
+                if (firstDay === 0) firstDay = 7; 
+                
+                for (let i = 1; i < firstDay; i++) this.calendar.push({day:''});
+                const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                for (let i = 1; i <= days; i++) this.calendar.push({day: i, isToday: i === now.getDate()});
+                
+                const holidays = {"07-03": "День Независимости РБ", "01-01": "Новый Год", "05-09": "День Победы"};
+                const k = now.toISOString().slice(5,10);
+                this.holidayInfo = holidays[k] || "Будни в Артели";
             },
-            async sendM() { if(!this.newM) return; await db.from('messages').insert([{username:this.userName, text:this.newM}]); this.newM = ''; },
-            genQR() { 
-                const qr = qrcode(0, 'M'); qr.addData(window.location.href); qr.make();
-                document.getElementById('qrcode').innerHTML = qr.createImgTag(4);
+
+            sendMsg() {
+                if(!this.newMsg) return;
+                this.messages.push({u: 'Мастер-' + Math.floor(Math.random()*100), r: this.userRole, t: this.newMsg});
+                this.newMsg = '';
+            },
+
+            shufflePrompt() {
+                const p = ["Промт: Спроектируй вездеход из старой Оки", "Промт: Напиши код для ЧПУ на базе Arduino", "Промт: Инструкция по сборке солнечной панели из транзисторов"];
+                this.currentPrompt = p[Math.floor(Math.random()*p.length)];
+            },
+
+            shuffleJoke() {
+                const j = ["Заходит инженер в бар...", "Синяя изолента лечит даже душу", "Лишняя деталь - это оптимизация"];
+                this.currentJoke = j[Math.floor(Math.random()*j.length)];
+            },
+
+            get filteredData() {
+                return this.techData.filter(d => d.p.toLowerCase().includes(this.search.toLowerCase()) || d.c.toLowerCase().includes(this.search.toLowerCase()));
             }
         }));
     });
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </body>
 </html>
