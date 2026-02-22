@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>АРТЕЛЬ v3.0 ПРЕМИУМ</title>
+    <title>АРТЕЛЬ v3.0 ПРЯМОЙ ПРИВОД</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,107 +18,102 @@
         .page { display: none; padding: 15px; max-width: 1000px; margin: 0 auto; }
         .active { display: block !important; }
 
-        /* Сетка для первой страницы */
-        .grid-main { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-right { display: grid; grid-template-rows: auto auto; gap: 15px; }
+        /* Твоя новая сетка 50/50 */
+        .grid-main { display: flex; gap: 15px; flex-wrap: wrap; }
+        .column-left { flex: 1; min-width: 300px; }
+        .column-right { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
         
-        .card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; border-left: 5px solid var(--blue); height: 100%; box-sizing: border-box; }
+        .card { border: 1px solid var(--blue); background: rgba(0,71,171,0.1); padding: 15px; border-left: 5px solid var(--blue); }
         
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--blue); z-index: 1000; }
-        .nav-item { color: #444; cursor: pointer; }
-        .nav-item.active { color: var(--neon); transform: scale(1.3); }
+        .nav-item { color: #444; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: var(--neon); transform: scale(1.2); }
         
-        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; }
         input { width: 100%; padding: 12px; background: #000; color: #fff; border: 1px solid var(--blue); box-sizing: border-box; }
         
-        /* Стили курилки с картинками */
-        .zone-box { border: 2px solid var(--blue); margin-bottom: 15px; text-align: center; background: #000; overflow: hidden; }
-        .zone-box img { width: 100%; height: 150px; object-fit: cover; opacity: 0.7; }
-        .zone-info { padding: 10px; }
-        .zone-info b { color: var(--neon); text-transform: uppercase; }
+        .zone-box { border: 2px solid var(--blue); margin-bottom: 15px; text-align: center; background: #000; }
+        .zone-box img { width: 100%; height: 120px; object-fit: cover; opacity: 0.6; }
         
-        .rank-badge { color: var(--neon); border: 1px solid var(--neon); padding: 5px; display: inline-block; margin-top: 10px; font-weight: bold; }
+        .rank-badge { color: var(--neon); border: 1px solid var(--neon); padding: 10px; display: inline-block; font-weight: bold; font-size: 1.2rem; }
     </style>
 </head>
 <body x-data="artelApp" x-init="init()">
 
 <header>🛠 АРТЕЛЬ ФОРДОВА И БЕНЦОВА 🛠</header>
 
-<div x-cloak :class="{'active': true}">
+<div x-cloak>
     <div class="page" :class="{'active': p === 1}">
         <div class="grid-main">
-            <div class="card">
-                <strong style="color:var(--neon)">📜 УСТАВ АРТЕЛИ</strong>
-                <div style="font-size:0.8rem; margin-top:15px;">
-                    <template x-for="(z, i) in zapovedi">
-                        <div style="margin-bottom:8px;"><b x-text="(i+1) + '.'"></b> <span x-text="z"></span></div>
-                    </template>
+            <div class="column-left">
+                <div class="card">
+                    <strong style="color:var(--neon)">📜 УСТАВ АРТЕЛИ</strong>
+                    <div style="font-size:0.9rem; margin-top:15px;">
+                        <template x-for="(z, i) in zapovedi">
+                            <div style="margin-bottom:10px;"><b x-text="(i+1) + '.'"></b> <span x-text="z"></span></div>
+                        </template>
+                    </div>
                 </div>
             </div>
-            <div class="grid-right">
+            <div class="column-right">
                 <div class="card" style="text-align:center;">
-                    <b style="color:var(--neon)">📅 ДАТА</b><br><br>
-                    <div style="font-size:1.1rem;" x-text="today"></div>
+                    <b style="color:var(--neon)">📅 ТЕКУЩАЯ ДАТА</b><br><br>
+                    <div style="font-size:1.3rem; font-weight:bold;" x-text="today"></div>
+                    <div style="font-size:0.7rem; margin-top:10px; opacity:0.5;">СМЕНА: ДНЕВНАЯ</div>
                 </div>
                 <div class="card" style="text-align:center;">
-                    <b style="color:var(--neon)">🎖 РАНГ СИСТЕМЫ</b><br>
+                    <b style="color:var(--neon)">🎖 ВАШ РАНГ</b><br><br>
                     <div class="rank-badge">МАСТАДОНТ</div>
-                    <div style="font-size:0.7rem; margin-top:10px; opacity:0.6;">Доступ: Полный</div>
+                    <div style="font-size:0.7rem; margin-top:15px; opacity:0.6;">ДОСТУП: ВЫСШИЙ ПРИОРЕТЕТ</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="page" :class="{'active': p === 2}">
-        <template x-if="!isReg">
-            <div class="card"><b>РЕГИСТРАЦИЯ</b><input type="text" x-model="userName" style="margin-top:10px;"><button class="btn-pusker" @click="register()">ВХОД</button></div>
-        </template>
-        <template x-if="isReg">
-            <div>
-                <div id="chat-win" style="height:350px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000;">
-                    <template x-for="m in msgs">
-                        <div style="margin-bottom:10px; border-left:2px solid var(--blue); padding-left:8px;">
-                            <small style="color:var(--neon)" x-text="m.username"></small><br><span x-text="m.text"></span>
-                        </div>
-                    </template>
-                </div>
-                <div style="display:flex; margin-top:10px;"><input type="text" x-model="newM" @keyup.enter="sendM()"><button @click="sendM()" class="btn-pusker" style="width:80px; margin:0;">ОК</button></div>
+        <div class="card" x-show="!isReg">
+            <b>РЕГИСТРАЦИЯ</b>
+            <input type="text" x-model="userName" placeholder="Позывной..." style="margin-top:10px;">
+            <button class="btn-pusker" @click="register()" style="margin-top:10px;">ВОЙТИ В СЕТЬ</button>
+        </div>
+        <div x-show="isReg">
+            <div id="chat-win" style="height:350px; overflow-y:auto; border:1px solid var(--blue); padding:10px; background:#000; margin-bottom:10px;">
+                <template x-for="m in msgs">
+                    <div style="margin-bottom:10px; border-left:2px solid var(--blue); padding-left:8px;">
+                        <small style="color:var(--neon)" x-text="m.username"></small><br><span x-text="m.text"></span>
+                    </div>
+                </template>
             </div>
-        </template>
+            <div style="display:flex; gap:5px;"><input type="text" x-model="newM"><button @click="sendM()" class="btn-pusker" style="width:80px;">ОК</button></div>
+        </div>
     </div>
 
     <div class="page" :class="{'active': p === 7}">
         <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1626071445451-b06f3630656e?auto=format&fit=crop&w=800&q=80" alt="сигареты">
-            <div class="zone-info"><b>🚬 ТАБАК АРТЕЛИ</b><br><a href="https://onliner.by" target="_blank" style="color:#fff; text-decoration:none;">Onliner.by</a></div>
+            <img src="https://images.unsplash.com/photo-1626071445451-b06f3630656e?w=400" alt="табак">
+            <div style="padding:10px;"><b>🚬 ТАБАК</b><br><a href="https://onliner.by" target="_blank" style="color:#fff;">Onliner.by</a></div>
         </div>
         <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?auto=format&fit=crop&w=800&q=80" alt="кофе">
-            <div class="zone-info"><b>☕ КОФЕ АРТЕЛИ</b><br><a href="https://e-lib.belstu.by" target="_blank" style="color:#fff; text-decoration:none;">Библиотека БГТУ</a></div>
+            <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400" alt="кофе">
+            <div style="padding:10px;"><b>☕ КОФЕ</b><br><a href="https://e-lib.belstu.by" target="_blank" style="color:#fff;">Библиотека</a></div>
         </div>
         <div class="zone-box">
-            <img src="https://images.unsplash.com/photo-1527281400828-ac737a999b9a?auto=format&fit=crop&w=800&q=80" alt="виски">
-            <div class="zone-info"><b>🥃 ВИСКЪ "АРТЕЛЬНЫЙ"</b><br><a href="http://radiopotok.ru" target="_blank" style="color:#fff; text-decoration:none;">Радиопоток</a></div>
+            <img src="https://images.unsplash.com/photo-1527281400828-ac737a999b9a?w=400" alt="виски">
+            <div style="padding:10px;"><b>🥃 ВИСКИ</b><br><a href="http://radiopotok.ru" target="_blank" style="color:#fff;">Радио</a></div>
         </div>
     </div>
-    
-    <div class="page" :class="{'active': p === 3}"><div class="card"><b>СКЛАД</b></div></div>
-    <div class="page" :class="{'active': p === 4}"><div class="card"><b>ТЕХ-АРХИВ</b></div></div>
-    <div class="page" :class="{'active': p === 5}"><div class="card"><b>ПРОМТЫ</b><br><a href="https://promptcowboy.com" target="_blank" style="color:var(--neon)">ОТКРЫТЬ КОВБОЯ</a></div></div>
-    <div class="page" :class="{'active': p === 6}">
-        <div class="card"><b>СЕРВИСЫ</b><br>
-            <a href="https://gemini.google.com" target="_blank" style="display:block; margin:10px 0; color:#fff;">Google Gemini</a>
-            <a href="https://suno.com" target="_blank" style="display:block; margin:10px 0; color:#fff;">Suno Music</a>
-        </div>
-    </div>
-    <div class="page" :class="{'active': p === 8}"><div class="card" style="text-align:center; background:#fff;"><div id="qrcode"></div></div></div>
 
+    <div class="page" :class="{'active': p === 3}"><div class="card">СКЛАД / ЯЩИКИ</div></div>
+    <div class="page" :class="{'active': p === 4}"><div class="card">ТЕХ-АРХИВ</div></div>
+    <div class="page" :class="{'active': p === 5}"><div class="card">ПРОМТЫ</div></div>
+    <div class="page" :class="{'active': p === 6}"><div class="card">СЕРВИСЫ</div></div>
+    <div class="page" :class="{'active': p === 8}"><div class="card" style="text-align:center; background:#fff; padding:10px;"><div id="qrcode"></div></div></div>
 </div>
 
 <nav class="nav-bar">
     <template x-for="(ic, i) in ['home','message-square','package','wrench','brain','zap','coffee','settings']">
         <div class="nav-item" :class="{'active': p === (i+1)}" @click="p=(i+1); refresh()">
-            <i :data-lucide="ic"></i>
+            <i :data-lucide="ic" style="width:24px; height:24px;"></i>
         </div>
     </template>
 </nav>
@@ -131,8 +126,8 @@
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            p: 1, today: '', isReg: localStorage.getItem('reg_v7') || false,
-            userName: localStorage.getItem('user_v7') || '',
+            p: 1, today: '', isReg: localStorage.getItem('reg_v8') || false,
+            userName: localStorage.getItem('user_v8') || '',
             msgs: [],
             zapovedi: ['Изолента — сила','Мат ускоряет ремонт','Лишних деталей нет','Не лезь — работает','Семь раз отмерь','Уважай мазуту','Инструмент — святое','Не уверен — не крути','Артель — семья','Перекур по ГОСТу'],
             
@@ -143,8 +138,8 @@
                 this.genQR();
                 if(db) this.load();
             },
-            refresh() { setTimeout(() => lucide.createIcons(), 50); },
-            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg_v7', true); localStorage.setItem('user_v7', this.userName); }},
+            refresh() { setTimeout(() => lucide.createIcons(), 100); },
+            register() { if(this.userName) { this.isReg = true; localStorage.setItem('reg_v8', true); localStorage.setItem('user_v8', this.userName); }},
             async load() {
                 const {data:m} = await db.from('messages').select('*').order('id',{ascending:false}).limit(10);
                 if(m) this.msgs = m.reverse();
