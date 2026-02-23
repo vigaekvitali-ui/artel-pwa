@@ -10,254 +10,208 @@
     
     <style>
         :root {
-            --gold: #ffae00;
-            --gold-dim: #6b4a1a;
-            --bg: #050505;
-            --panel: #12100e;
-            --neon-blue: #00f2ff;
+            --gold: #ffae00; --gold-dim: #6b4a1a; --bg: #050505;
+            --panel: #12100e; --neon-blue: #00f2ff;
         }
 
         body {
-            background: var(--bg);
-            color: #d4c4b5;
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            text-transform: uppercase;
+            background: var(--bg); color: #d4c4b5; font-family: 'Courier New', monospace;
+            margin: 0; height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden; text-transform: uppercase;
         }
 
+        /* CRT Effect */
         body::after {
-            content: " ";
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
+            content: " "; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            background-size: 100% 3px, 3px 100%;
-            pointer-events: none;
-            z-index: 1000;
+            background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 1000;
         }
 
-        header { border-bottom: 2px solid var(--gold-dim); padding: 12px; background: var(--panel); text-align: center; }
-        .main-view { flex: 1; padding: 15px; overflow-y: auto; }
+        header { border-bottom: 2px solid var(--gold-dim); padding: 8px; background: var(--panel); text-align: center; }
+        .main-view { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; }
         
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 15px;
-            height: 100%;
-        }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%; }
+        .block { background: var(--panel); border: 1px solid var(--gold-dim); padding: 10px; box-shadow: inset 0 0 15px #000; }
+        .full-block { grid-column: span 2; }
 
-        .block {
-            background: var(--panel);
-            border: 2px solid var(--gold-dim);
-            padding: 12px;
-            box-shadow: inset 0 0 20px #000;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .block-main { grid-row: span 2; }
-
-        h2 { margin: 0 0 10px 0; font-size: 0.75rem; color: var(--gold); border-bottom: 1px solid var(--gold-dim); padding-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        h2 { margin: 0 0 8px 0; font-size: 0.7rem; color: var(--gold); border-bottom: 1px solid var(--gold-dim); display: flex; align-items: center; gap: 5px; }
         
-        .btn {
-            background: #1a1714; border: 1px solid var(--gold-dim); color: var(--gold);
-            padding: 8px; font-size: 0.65rem; text-align: center; cursor: pointer;
-            margin-bottom: 5px; display: block; text-decoration: none;
+        .nav-grid { 
+            background: #000; display: grid; grid-template-columns: repeat(4, 1fr); 
+            border-top: 2px solid var(--gold-dim); padding: 5px; gap: 5px;
         }
-        .btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 10px var(--gold); }
-
-        input { background: #000; color: var(--gold); border: 1px solid var(--gold-dim); padding: 8px; width: 100%; box-sizing: border-box; outline: none; font-family: monospace; }
-
-        nav { background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--gold-dim); }
-        .nav-item { color: var(--gold-dim); cursor: pointer; flex: 1; text-align: center; }
-        .nav-item.active { color: var(--gold); filter: drop-shadow(0 0 8px var(--gold)); }
+        .nav-item { 
+            color: var(--gold-dim); cursor: pointer; text-align: center; 
+            padding: 10px 0; border: 1px solid transparent;
+        }
+        .nav-item.active { color: var(--gold); border-color: var(--gold-dim); background: #1a1714; }
 
         .neon { color: var(--gold); text-shadow: 0 0 5px var(--gold); }
         .gm-title { color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue); font-weight: bold; }
-        .mastodon-item { border-left: 2px solid var(--neon-blue); padding-left: 10px; margin-bottom: 8px; }
         
-        .scroll-area { flex: 1; overflow-y: auto; padding-right: 5px; font-size: 0.65rem; }
-        .scroll-area p { margin: 4px 0; line-height: 1.2; }
+        #chat-scroller { height: 150px; overflow-y: auto; font-size: 0.7rem; margin-bottom: 5px; }
+        .msg { margin-bottom: 5px; border-bottom: 1px solid #1a1a1a; }
+        input { background: #000; color: var(--gold); border: 1px solid var(--gold-dim); padding: 5px; width: 100%; box-sizing: border-box; font-family: monospace; }
         
-        #chat-scroller { flex: 1; overflow-y: auto; font-size: 0.75rem; margin-bottom: 10px; }
-        .msg { margin-bottom: 8px; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; }
+        .btn { background: #1a1714; border: 1px solid var(--gold-dim); color: var(--gold); padding: 5px; font-size: 0.6rem; cursor: pointer; text-align: center; }
+        .scroll-text { font-size: 0.65rem; line-height: 1.2; }
     </style>
 </head>
 <body x-data="artelApp">
 
 <header>
-    <div class="neon" style="letter-spacing: 1px; font-weight: bold; font-size: 0.8rem;">
-        Артель Бенцова и Фордова "СИНЯЯ ИЗОЛЕНТА"
-    </div>
+    <div class="neon" style="font-size: 0.7rem;">Артель Бенцова и Фордова "СИНЯЯ ИЗОЛЕНТА" • v.17.0</div>
 </header>
 
 <main class="main-view">
     
-    <div class="grid-layout" x-show="tab === 'home'">
-        <div class="block block-main">
-            <h2><i data-lucide="shield"></i> ВЫСШИЙ СОВЕТ АРТЕЛИ</h2>
-            <div style="margin-bottom: 15px;">
-                <div class="mastodon-item">
-                    <div class="gm-title">БЕНЦОВ & ФОРДОВ</div>
-                    <div style="font-size: 0.55rem; color: gray;">ОСНОВАТЕЛИ АРТЕЛИ</div>
-                </div>
-                <div class="mastodon-item">
-                    <div class="gm-title">ВИТАЛИЙ</div>
-                    <div style="font-size: 0.55rem; color: gray;">ГРАНД МАСТЕР СИНЕЙ КАТУШКИ</div>
-                </div>
+    <div x-show="tab === 1" class="grid-layout">
+        <div class="block full-block">
+            <h2><i data-lucide="scroll"></i> 10 ЗАПОВЕДЕЙ АРТЕЛИ</h2>
+            <div class="scroll-text">
+                <p>1. ТБ — НЕ ДОГМА, А ЖИЗНЬ. ПАЛЬЦЫ НЕ ОТРАСТАЮТ.</p>
+                <p>2. СИНЯЯ ИЗОЛЕНТА — ФУНДАМЕНТ ВСЕЛЕННОЙ.</p>
+                <p>3. ЧЕРНАЯ ИЗОЛЕНТА — ТОЛЬКО ДЛЯ ВРЕМЕННЫХ СХЕМ.</p>
+                <p>4. ИНСТРУМЕНТ ВЗЯЛ — ОЧИСТИ. СЛОМАЛ — КУПИ НОВЫЙ.</p>
+                <p>5. ЕСЛИ НЕ КРУТИТСЯ — ВОЗЬМИ РЫЧАГ БОЛЬШЕ.</p>
+                <p>6. ЧИСТОТА В БОКСЕ — ПРИЗНАК СВОБОДНОГО ВРЕМЕНИ.</p>
+                <p>7. КТО НЕ ЧИНИТ — ТОТ НЕ ЕСТ.</p>
+                <p>8. МАСТОДОНТЫ И ГРАНД МАСТЕР ВСЕГДА ПРАВЫ.</p>
+                <p>9. ЛИЧИНКА ОБЯЗАНА СЛУШАТЬ И ПОДАВАТЬ КЛЮЧИ МОЛЧА.</p>
+                <p>10. СИЛА АРТЕЛИ — В ЕДИНСТВЕ И КАНИСТРЕ WD-40.</p>
             </div>
-
-            <h2><i data-lucide="scroll"></i> 10 ЗАПОВЕДЕЙ (УСТАВ)</h2>
-            <div class="scroll-area">
-                <p><span class="neon">1.</span> ТБ — НЕ ДОГМА, А ЖИЗНЬ. ПАЛЬЦЫ НЕ ОТРАСТАЮТ.</p>
-                <p><span class="neon">2.</span> СИНЯЯ ИЗОЛЕНТА — ФУНДАМЕНТ ВСЕЛЕННОЙ.</p>
-                <p><span class="neon">3.</span> ЧЕРНАЯ ИЗОЛЕНТА — ТОЛЬКО ДЛЯ ВРЕМЕННЫХ СХЕМ.</p>
-                <p><span class="neon">4.</span> ИНСТРУМЕНТ ВЗЯЛ — ОЧИСТИ. СЛОМАЛ — КУПИ НОВЫЙ.</p>
-                <p><span class="neon">5.</span> ЕСЛИ НЕ КРУТИТСЯ — ВОЗЬМИ РЫЧАГ БОЛЬШЕ.</p>
-                <p><span class="neon">6.</span> ЧИСТОТА В БОКСЕ — ПРИЗНАК СВОБОДНОГО ВРЕМЕНИ.</p>
-                <p><span class="neon">7.</span> КТО НЕ ЧИНИТ — ТОТ НЕ ЕСТ.</p>
-                <p><span class="neon">8.</span> МАСТОДОНТЫ И ГРАНД МАСТЕР ВСЕГДА ПРАВЫ.</p>
-                <p><span class="neon">9.</span> ЛИЧИНКА ОБЯЗАНА СЛУШАТЬ И ПОДАВАТЬ КЛЮЧИ МОЛЧА.</p>
-                <p><span class="neon">10.</span> СИЛА АРТЕЛИ — В ЕДИНСТВЕ И КАНИСТРЕ WD-40.</p>
-            </div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="calendar"></i> ДАТА</h2>
-            <div class="neon" style="text-align:center; font-size:1rem;" x-text="todayDate"></div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="clock"></i> ВРЕМЯ</h2>
-            <div class="neon" style="font-size: 1.6rem; text-align: center;" x-text="time"></div>
         </div>
     </div>
 
-    <div class="grid-layout" x-show="tab === 'chat'">
-        <div class="block block-main">
-            <h2><i data-lucide="radio"></i> ЭФИР "СИНЕЙ ИЗОЛЕНТЫ"</h2>
+    <div x-show="tab === 2" class="grid-layout">
+        <div class="block full-block">
+            <h2><i data-lucide="shield"></i> ВЫСШИЙ СОВЕТ</h2>
+            <div class="gm-title">БЕНЦОВ & ФОРДОВ</div>
+            <div style="font-size: 0.6rem; margin-bottom:10px;">ОСНОВАТЕЛИ И ИДЕОЛОГИ</div>
+            <div class="gm-title">ВИТАЛИЙ</div>
+            <div style="font-size: 0.6rem;">ГРАНД МАСТЕР СИНЕЙ КАТУШКИ</div>
+        </div>
+    </div>
+
+    <div x-show="tab === 3" class="grid-layout">
+        <div class="block full-block">
+            <h2><i data-lucide="radio"></i> ОБЛАЧНАЯ РАДИОРУБКА</h2>
             <div id="chat-scroller">
                 <template x-for="m in messages">
                     <div class="msg">
-                        <span :class="m.rank.includes('ГРАНД') || m.rank.includes('МАСТОДОНТ') ? 'gm-title' : 'neon'" x-text="'[' + m.rank + '] ' + m.user_name"></span>: 
+                        <span :class="m.rank.includes('ГРАНД') ? 'gm-title' : 'neon'" x-text="'[' + m.rank + '] ' + m.user_name"></span>: 
                         <span x-text="m.content"></span>
                     </div>
                 </template>
             </div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" x-model="chatInput" @keyup.enter="sendToCloud" placeholder="СООБЩЕНИЕ...">
-                <button class="btn" @click="sendToCloud" style="margin:0; width:50px;">OK</button>
-            </div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="signal"></i> СТАТУС</h2>
-            <div style="font-size:0.6rem;" :style="{color: isOnline ? '#0f0' : '#f00'}" x-text="cloudStatus"></div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="database"></i> PROJECT ID</h2>
-            <div style="font-size:0.45rem; color:var(--gold); opacity: 0.7; word-break: break-all;">grsszunlfmehyykkvccj</div>
+            <input type="text" x-model="chatInput" @keyup.enter="send" placeholder="ВВОД...">
         </div>
     </div>
 
-    <div class="grid-layout" x-show="tab === 'settings'">
-        <div class="block block-main">
-            <h2><i data-lucide="user-cog"></i> ЛИЧНЫЙ ТЕРМИНАЛ</h2>
-            <p class="gm-title" style="margin-bottom: 2px;">ВИТАЛИЙ</p>
-            <p class="neon" style="font-size: 0.6rem; margin-top: 0;">ГРАНД МАСТЕР</p>
-            <hr style="border-color:var(--gold-dim); margin: 15px 0;">
-            <div class="btn" onclick="location.reload()">ПЕРЕЗАПУСК</div>
-            <div class="btn" @click="alert('СИСТЕМА СИНХРОНИЗИРОВАНА')">СИНХРОНИЗАЦИЯ</div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="qr-code"></i> ВХОД</h2>
-            <div style="background:#fff; padding:5px; margin:auto; width:80px; height:80px;">
-                <img id="qr-img" style="width:100%; height:100%;">
+    <div x-show="tab === 4" class="grid-layout">
+        <div class="block full-block">
+            <h2><i data-lucide="clipboard-list"></i> ТЕКУЩИЕ ЗАДАЧИ</h2>
+            <div class="scroll-text">
+                <p>[ ] ПРОВЕРИТЬ УРОВЕНЬ МАСЛА В ОБЛАКЕ</p>
+                <p>[ ] ЗАКУПИТЬ СИНЮЮ ИЗОЛЕНТУ (200М)</p>
+                <p>[ ] ОБНОВИТЬ ПРОШИВКУ ТЕРМИНАЛА</p>
             </div>
         </div>
+    </div>
+
+    <div x-show="tab === 5" class="grid-layout">
+        <div class="block full-block">
+            <h2><i data-lucide="box"></i> ИНВЕНТАРЬ</h2>
+            <div class="scroll-text">
+                <p>WD-40: 5 Л.</p>
+                <p>ИЗОЛЕНТА (СИН): 12 РУЛ.</p>
+                <p>КЛЮЧ НА 13: В РОЗЫСКЕ</p>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="tab === 6" class="grid-layout">
         <div class="block">
-            <h2><i data-lucide="info"></i> СБОРКА</h2>
-            <div style="font-size:0.5rem; color:var(--gold);">v.16.1 FINAL NAME FIX<br>BENTSOV & FORDOV</div>
+            <h2><i data-lucide="activity"></i> СИСТЕМА</h2>
+            <div style="font-size: 0.6rem;" x-text="cloudStatus"></div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="database"></i> БАЗА</h2>
+            <div style="font-size: 0.5rem; word-break:break-all;">grsszunlfmehyykkvccj</div>
+        </div>
+    </div>
+
+    <div x-show="tab === 7" class="grid-layout">
+        <div class="block full-block" style="text-align: center;">
+            <h2><i data-lucide="qr-code"></i> МОБИЛЬНЫЙ УЗЕЛ</h2>
+            <div style="background:#fff; padding:5px; display:inline-block; margin-top:10px;">
+                <img id="qr-img" style="width:120px; height:120px;">
+            </div>
+        </div>
+    </div>
+
+    <div x-show="tab === 8" class="grid-layout">
+        <div class="block full-block">
+            <h2><i data-lucide="user"></i> ОПЕРАТОР</h2>
+            <div class="gm-title" style="font-size: 1.2rem;">ВИТАЛИЙ</div>
+            <div class="neon">ДОСТУП: ПОЛНЫЙ (LVL 99)</div>
+            <div class="btn" style="margin-top:20px;" onclick="location.reload()">REBOOT SYSTEM</div>
         </div>
     </div>
 
 </main>
 
-<nav>
-    <div class="nav-item" :class="tab === 'home' ? 'active' : ''" @click="tab = 'home'"><i data-lucide="shield"></i></div>
-    <div class="nav-item" :class="tab === 'chat' ? 'active' : ''" @click="tab = 'chat'"><i data-lucide="message-square"></i></div>
-    <div class="nav-item" :class="tab === 'settings' ? 'active' : ''" @click="tab = 'settings'"><i data-lucide="settings"></i></div>
+<nav class="nav-grid">
+    <div class="nav-item" :class="tab === 1 ? 'active' : ''" @click="tab = 1"><i data-lucide="scroll"></i></div>
+    <div class="nav-item" :class="tab === 2 ? 'active' : ''" @click="tab = 2"><i data-lucide="shield"></i></div>
+    <div class="nav-item" :class="tab === 3 ? 'active' : ''" @click="tab = 3"><i data-lucide="message-square"></i></div>
+    <div class="nav-item" :class="tab === 4 ? 'active' : ''" @click="tab = 4"><i data-lucide="clipboard-list"></i></div>
+    <div class="nav-item" :class="tab === 5 ? 'active' : ''" @click="tab = 5"><i data-lucide="box"></i></div>
+    <div class="nav-item" :class="tab === 6 ? 'active' : ''" @click="tab = 6"><i data-lucide="activity"></i></div>
+    <div class="nav-item" :class="tab === 7 ? 'active' : ''" @click="tab = 7"><i data-lucide="qr-code"></i></div>
+    <div class="nav-item" :class="tab === 8 ? 'active' : ''" @click="tab = 8"><i data-lucide="user-cog"></i></div>
 </nav>
 
 <script>
     const SB_URL = 'https://grsszunlfmehyykkvccj.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyc3N6dW5sZm1laHl5a2t2Y2NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2MTkwMTQsImV4cCI6MjA4NzE5NTAxNH0.sklK5pcXkSuj3upLdLzkMUQWSeLgPfG0U0qZwhAHghw'; 
-
-    const { createClient } = supabase;
-    const sbClient = createClient(SB_URL, SB_KEY);
+    const sb = supabase.createClient(SB_URL, SB_KEY);
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            tab: 'home',
-            time: '',
-            todayDate: '',
-            chatInput: '',
-            messages: [],
-            cloudStatus: 'ОЖИДАНИЕ...',
-            isOnline: false,
-
+            tab: 1, chatInput: '', messages: [], cloudStatus: 'СВЯЗЬ: OK',
             init() {
-                this.updateClock();
-                setInterval(() => this.updateClock(), 1000);
-                this.todayDate = new Date().toLocaleDateString('ru-RU');
-                this.genQR();
                 lucide.createIcons();
-                this.fetchChat();
-                this.listenChat();
+                this.genQR();
+                this.fetch();
+                this.listen();
             },
-
-            updateClock() { this.time = new Date().toLocaleTimeString('ru-RU'); },
-
             genQR() {
                 const link = encodeURIComponent(window.location.href);
-                document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${link}`;
+                document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${link}`;
             },
-
-            async fetchChat() {
-                const { data, error } = await sbClient.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                if (!error) {
-                    this.messages = data || [];
-                    this.cloudStatus = 'ЭФИР: OK';
-                    this.isOnline = true;
-                }
-                this.scrollDown();
+            async fetch() {
+                const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
+                if (data) this.messages = data;
+                this.scroll();
             },
-
-            listenChat() {
-                sbClient.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                    this.messages.push(payload.new);
-                    this.scrollDown();
+            listen() {
+                sb.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+                    this.messages.push(p.new);
+                    this.scroll();
                 }).subscribe();
             },
-
-            async sendToCloud() {
+            async send() {
                 if(!this.chatInput.trim()) return;
-                await sbClient.from('messages').insert([{ 
-                    user_name: 'ВИТАЛИЙ', 
-                    rank: 'ГРАНД МАСТЕР', 
-                    content: this.chatInput 
-                }]);
+                await sb.from('messages').insert([{ user_name: 'ВИТАЛИЙ', rank: 'ГРАНД МАСТЕР', content: this.chatInput }]);
                 this.chatInput = '';
             },
-
-            scrollDown() {
+            scroll() {
                 setTimeout(() => { const b = document.getElementById('chat-scroller'); if(b) b.scrollTop = b.scrollHeight; }, 100);
             }
         }));
     });
 </script>
-
 </body>
 </html>
