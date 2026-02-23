@@ -3,61 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>АРТЕЛЬ: ТЕРМИНАЛ v.8.0</title>
+    <title>АРТЕЛЬ: ТЕРМИНАЛ v.8.5</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
-        :root { --gold: #c19a6b; --gold-dim: #4a3b31; --bg: #0d0d0d; --panel: #1a1714; --neon: #ffae00; --red: #ff4444; }
+        :root { --gold: #c19a6b; --gold-dim: #4a3b31; --bg: #0a0a0a; --panel: #1a1714; --neon: #ffae00; --red: #ff3333; }
         body { background: var(--bg); color: #d4c4b5; font-family: 'Courier New', monospace; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; text-transform: uppercase; }
-        body::before { content: ""; position: fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02)); background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 100; }
         
-        header { border-bottom: 2px solid var(--gold-dim); padding: 10px; text-align: center; background: var(--panel); }
-        .main-container { flex: 1; padding: 15px; overflow-y: auto; }
-        
-        .page-grid { display: grid; grid-template-columns: 1fr 0.5fr; grid-template-rows: 1fr 1fr; gap: 15px; height: 100%; min-height: 550px; }
-        .block { background: var(--panel); border: 2px solid var(--gold-dim); padding: 15px; display: flex; flex-direction: column; box-shadow: inset 0 0 15px #000; }
-        .block-left { grid-row: span 2; }
-        
-        h2 { margin: 0 0 10px; font-size: 1rem; color: var(--gold); border-bottom: 1px solid var(--gold-dim); display: flex; align-items: center; gap: 8px; }
-        .link-btn { background: #26221f; border: 1px solid var(--gold-dim); color: var(--gold); padding: 10px; text-decoration: none; display: block; text-align: center; margin-bottom: 5px; font-size: 0.8rem; cursor: pointer; }
-        .link-btn:hover { background: var(--gold-dim); color: #000; }
-        
-        .vpn-warn { background: var(--red); color: #fff; padding: 5px; font-size: 0.7rem; text-align: center; margin-bottom: 10px; animation: blink 2s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        /* Эффект сканирующих линий ЭЛТ */
+        body::after { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000; }
 
-        nav { background: #000; display: flex; overflow-x: auto; border-top: 2px solid var(--gold-dim); }
-        .nav-item { padding: 10px; color: var(--gold-dim); cursor: pointer; text-align: center; min-width: 80px; flex: 1; }
-        .nav-item.active { color: var(--neon); border-top: 2px solid var(--neon); }
+        header { border-bottom: 2px solid var(--gold-dim); padding: 8px; text-align: center; background: var(--panel); box-shadow: 0 0 20px rgba(0,0,0,0.7); }
+        .container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
         
-        /* Модальное окно для ящиков */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: var(--panel); border: 3px solid var(--gold); padding: 20px; width: 80%; max-width: 500px; }
+        .page-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; grid-template-rows: 1fr 1fr; gap: 15px; height: 100%; min-height: 550px; }
+        .block { background: var(--panel); border: 2px solid var(--gold-dim); padding: 12px; display: flex; flex-direction: column; position: relative; box-shadow: inset 0 0 15px #000; }
+        .block-main { grid-row: span 2; }
+        
+        h2 { margin: 0 0 10px; font-size: 0.9rem; color: var(--gold); border-bottom: 1px solid var(--gold-dim); padding-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .btn { background: #26221f; border: 1px solid var(--gold-dim); color: var(--gold); padding: 8px; text-decoration: none; display: block; text-align: center; margin-bottom: 5px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: var(--gold-dim); color: #000; box-shadow: 0 0 10px var(--gold); }
+        
+        nav { background: #000; display: flex; justify-content: space-around; padding: 10px; border-top: 2px solid var(--gold-dim); }
+        .nav-item { color: var(--gold-dim); cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: var(--neon); filter: drop-shadow(0 0 5px var(--neon)); }
+        .nav-item span { font-size: 0.5rem; margin-top: 3px; }
 
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 0.7rem; }
-        .day { border: 1px solid #333; padding: 4px; text-align: center; }
-        .today { background: var(--gold-dim); color: var(--neon); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 0.65rem; text-align: center; }
+        .day { border: 1px solid #333; padding: 3px; }
+        .today { background: var(--gold-dim); color: var(--neon); border-color: var(--neon); }
+
+        /* Модалка ящиков */
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 2000; display:flex; align-items:center; justify-content:center; }
+        .modal-box { background: var(--panel); border: 2px solid var(--neon); padding: 20px; width: 90%; max-width: 500px; }
+        
+        input, textarea { background: #000; color: var(--neon); border: 1px solid var(--gold-dim); padding: 8px; width: 100%; box-sizing: border-box; outline: none; }
+        .neon-txt { color: var(--neon); text-shadow: 0 0 5px var(--neon); }
     </style>
 </head>
-<body x-data="artelApp">
+<body x-data="artelTerminal">
 
-<header><div style="color:var(--neon); letter-spacing:3px;">АРТЕЛЬ • БОРТОВОЙ КОМПЬЮТЕР v8.0</div></header>
+<header><div class="neon-txt" style="letter-spacing: 4px;">АРТЕЛЬ • ТЕРМИНАЛ УПРАВЛЕНИЯ</div></header>
 
-<main class="main-container">
-    <div class="page-grid" x-show="tab === 1">
-        <div class="block block-left">
+<main class="container">
+    <div class="page-grid" x-show="tab === 'home'">
+        <div class="block block-main">
             <h2><i data-lucide="scroll"></i> УСТАВ И ТАБЕЛЬ</h2>
-            <div style="overflow-y:auto; font-size:0.8rem; padding-right:10px;">
-                <p style="color:var(--neon)">1. ТБ — НЕ ДОГМА. ПАЛЬЦЕВ ВСЕГО ДЕСЯТЬ.</p>
+            <div style="overflow-y:auto; font-size:0.75rem; flex:1;">
+                <p class="neon-txt">1. ТБ — НЕ ДОГМА. ПАЛЬЦЕВ ВСЕГО ДЕСЯТЬ.</p>
                 <p>2. ИЗОЛЕНТА — ЛЕЧИТ ПРОВОДКУ, ТРЕЩИНЫ И ДУШУ.</p>
                 <p>3. МАТ — СОКРАЩАЕТ ВРЕМЯ РЕМОНТА НА 40%.</p>
                 <p>4. КЛЮЧ НА 13 — ВСЕГДА ТЕРЯЕТСЯ ПЕРВЫМ.</p>
                 <p>5. НЕ КРУТИТСЯ — ВОЗЬМИ РЫЧАГ. СЛОМАЛОСЬ — ТАК И БЫЛО.</p>
+                <p>6. ЧИСТОТА В ГАРАЖЕ — ПРИЗНАК ТОГО, ЧТО РАБОТА СТОИТ.</p>
                 <hr style="border-color:var(--gold-dim)">
-                <h3>РАНГИ:</h3>
+                <h3 class="neon-txt">РАНГИ АРТЕЛИ:</h3>
                 <p>• МАСТОДОНТ — ВЛАДЕЛЕЦ ТЕРМИНАЛА</p>
                 <p>• ГРАНД-МАСТЕР — ГУРУ СИНЕЙ ИЗОЛЕНТЫ</p>
-                <p>• ИНЖЕНЕР — МОЖЕТ СОБРАТЬ ИЗ ХЛАМА ДВИГАТЕЛЬ</p>
-                <p>• ЛИЧИНКА — СМОТРИТ И УЧИТСЯ</p>
+                <p>• ИНЖЕНЕР — СОБИРАЕТ ДВИГАТЕЛЬ ИЗ ХЛАМА</p>
+                <p>• ЛИЧИНКА — ПРИНЕСИ-ПОДАЙ</p>
             </div>
         </div>
         <div class="block">
@@ -68,174 +72,233 @@
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="clock"></i> СМЕНА</h2>
-            <div style="font-size:2rem; text-align:center; color:var(--neon)" x-text="time"></div>
+            <h2><i data-lucide="clock"></i> ВРЕМЯ</h2>
+            <div class="neon-txt" style="font-size:2rem; text-align:center;" x-text="time"></div>
         </div>
     </div>
 
-    <div class="page-grid" x-show="tab === 2">
-        <div class="block block-left">
+    <div class="page-grid" x-show="tab === 'box'">
+        <div class="block block-main">
             <h2><i data-lucide="package"></i> ЯЩИКИ ХРАНЕНИЯ</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; height:100%;">
-                <template x-for="i in [1,2,3,4]">
-                    <div class="link-btn" @click="openBox(i)" style="height:80px; display:flex; align-items:center; justify-content:center;">
-                        ЯЩИК №<span x-text="i"></span>
-                    </div>
-                </template>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1;">
+                <div class="btn" @click="openBox('МЕХАНИКА')" style="display:flex; align-items:center; justify-content:center;">МЕХАНИКА</div>
+                <div class="btn" @click="openBox('ЭЛЕКТРИКА')" style="display:flex; align-items:center; justify-content:center;">ЭЛЕКТРИКА</div>
+                <div class="btn" @click="openBox('КУЗОВ')" style="display:flex; align-items:center; justify-content:center;">КУЗОВ</div>
+                <div class="btn" @click="openBox('РАЗНОЕ')" style="display:flex; align-items:center; justify-content:center;">РАЗНОЕ</div>
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="info"></i> ИНФО</h2>
-            <p style="font-size:0.7rem;">Кликни на ящик, чтобы сделать запись или просмотреть содержимое.</p>
+            <h2><i data-lucide="upload"></i> МЕДИА</h2>
+            <div class="btn">ФОТО</div><div class="btn">ВИДЕО</div>
         </div>
         <div class="block">
-            <h2><i data-lucide="database"></i> БАЗА</h2>
-            <div style="font-size:0.8rem;">ЛОГИ: <span x-text="logsCount"></span></div>
+            <h2><i data-lucide="database"></i> ЛОГИ</h2>
+            <div style="font-size:0.7rem;">ЗАПИСЕЙ: <span x-text="logs"></span></div>
         </div>
     </div>
 
-    <div class="page-grid" x-show="tab === 4">
-        <div class="block block-left">
-            <h2><i data-lucide="wrench"></i> ПОДБОР ДЕТАЛЕЙ</h2>
-            <a href="https://podshypnik.info/" target="_blank" class="link-btn">ПОДШИПНИКИ (РАЗМЕРЫ)</a>
-            <a href="https://www.oil-seal.ru/" target="_blank" class="link-btn">САЛЬНИКИ И МАНЖЕТЫ</a>
-            <a href="https://ardio.ru/obd2.php" target="_blank" class="link-btn">ОШИБКИ OBD-2 (ПО МАРКАМ)</a>
-            <a href="https://www.vseinstrumenti.ru/as-v-kakoj-strane-proizvodyat-instrument/" target="_blank" class="link-btn">БРЕНДЫ (КТО ДЕЛАЕТ?)</a>
+    <div class="page-grid" x-show="tab === 'chat'">
+        <div class="block block-main">
+            <h2><i data-lucide="message-square"></i> ЧАТ АРТЕЛИ</h2>
+            <div style="flex:1; overflow-y:auto; font-size:0.8rem; margin-bottom:10px;">
+                <template x-for="m in messages">
+                    <div style="margin-bottom:5px; border-bottom:1px solid #333;">
+                        <b class="neon-txt" x-text="m.user"></b>: <span x-text="m.msg"></span>
+                    </div>
+                </template>
+            </div>
+            <input type="text" x-model="newMsg" @keyup.enter="sendMsg" placeholder="ПЕРЕДАТЬ...">
         </div>
         <div class="block">
-            <h2><i data-lucide="book"></i> ТЕХ-СПРАВКА</h2>
-            <a href="https://dpva.ru/" target="_blank" class="link-btn">ИНЖЕНЕРНЫЙ СПРАВОЧНИК</a>
-            <a href="https://cyberleninka.ru/" target="_blank" class="link-btn">КИБЕРЛЕНИНКА</a>
+            <h2><i data-lucide="users"></i> В СЕТИ</h2>
+            <div style="font-size:0.7rem;">
+                <div class="neon-txt">● МАСТОДОНТ</div>
+                <div>○ ГОСТЬ_721</div>
+            </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="search"></i> ПОИСК</h2>
-            <input type="text" placeholder="АРТИКУЛ..." style="width:100%; background:#000; color:var(--neon); border:1px solid var(--gold-dim); padding:5px;">
+            <h2><i data-lucide="radio"></i> СТАТУС</h2>
+            <div style="font-size:0.6rem; color:var(--neon)">ЭФИР: АКТИВЕН<br>144.500 MHZ</div>
         </div>
     </div>
 
-    <div class="page-grid" x-show="tab === 5">
-        <div class="block block-left">
-            <h2><i data-lucide="zap"></i> ПРОМПТ-КОВБОЙ</h2>
-            <div style="font-size:0.75rem; overflow-y:auto;">
-                <p style="color:var(--neon)">ЗОЛОТОЕ ПРАВИЛО:</p>
-                <p>Роль + Контекст + Задача + Формат.</p>
-                <hr>
-                <p>Шаблон: "Ты инженер-механик с 30-летним стажем. Разбери причину стука в двигателе [марка] при оборотах [число]. Выдай пошаговый план диагностики."</p>
-                <a href="https://flowgpt.com/" target="_blank" class="link-btn">БАЗА ПРОМПТОВ (FLOWGPT)</a>
+    <div class="page-grid" x-show="tab === 'tools'">
+        <div class="block block-main">
+            <h2><i data-lucide="wrench"></i> ИНЖЕНЕРНЫЙ ПУЛЬТ</h2>
+            <a href="https://podshypnik.info/" target="_blank" class="btn">ПОДШИПНИКИ (РАЗМЕРЫ)</a>
+            <a href="https://www.oil-seal.ru/" target="_blank" class="btn">САЛЬНИКИ / МАНЖЕТЫ</a>
+            <a href="https://ardio.ru/obd2.php" target="_blank" class="btn">КОДЫ OBD-II (ПОИСК)</a>
+            <a href="https://cyberleninka.ru/" target="_blank" class="btn">КИБЕРЛЕНИНКА</a>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="book-open"></i> СПРАВКА</h2>
+            <a href="https://dpva.ru/" target="_blank" class="btn">ИНЖЕНЕРНЫЙ СПРАВОЧНИК</a>
+            <a href="https://gostinfo.ru/" target="_blank" class="btn">ГОСТЫ</a>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="search"></i> АРТИКУЛ</h2>
+            <input type="text" placeholder="ПОИСК...">
+        </div>
+    </div>
+
+    <div class="page-grid" x-show="tab === 'zap'">
+        <div class="block block-main">
+            <h2><i data-lucide="zap"></i> ПРОМТ-КОВБОЙ</h2>
+            <div style="font-size:0.75rem;">
+                <p class="neon-txt">УСТАВ ПРОМПТЕРА:</p>
+                <p>ФОРМУЛА: [РОЛЬ] + [КОНТЕКСТ] + [ЗАДАЧА] + [ОГРАНИЧЕНИЯ]</p>
+                <a href="https://t.me/PromptCowboy" target="_blank" class="btn">ПРОМТ КОВБОЙ (TG)</a>
+                <a href="https://flowgpt.com/" target="_blank" class="btn">БАЗА FLOWGPT</a>
             </div>
         </div>
         <div class="block">
             <h2><i data-lucide="terminal"></i> САЙТЫ</h2>
-            <a href="https://promptbase.com/" target="_blank" class="link-btn">PROMPTBASE</a>
+            <a href="https://promptbase.com/" target="_blank" class="btn">PROMPTBASE</a>
         </div>
         <div class="block">
-            <h2><i data-lucide="graduation-cap"></i> УРОК</h2>
-            <div style="font-size:0.6rem;">НЕ ПИШИ "СДЕЛАЙ", ПИШИ "ПРЕДСТАВЬ, ЧТО ТЫ..."</div>
+            <h2><i data-lucide="award"></i> СОВЕТ</h2>
+            <p style="font-size:0.6rem;">ПИШИ ИИ: "ДЕЙСТВУЙ КАК ГЛАВНЫЙ ИНЖЕНЕР..."</p>
         </div>
     </div>
 
-    <div class="page-grid" x-show="tab === 6">
-        <div class="block block-left">
+    <div class="page-grid" x-show="tab === 'cpu'">
+        <div class="block block-main">
             <h2><i data-lucide="cpu"></i> ИИ МОЩНОСТИ</h2>
-            <div class="vpn-warn">ВНИМАНИЕ: ТРЕБУЕТСЯ VPN ДЛЯ ГУГЛА И КЛОДА!</div>
-            <a href="https://gemini.google.com/" target="_blank" class="link-btn">GOOGLE GEMINI</a>
-            <a href="https://chat.deepseek.com/" target="_blank" class="link-btn">DEEPSEEK (БЕЗ VPN)</a>
-            <a href="https://notebooklm.google.com/" target="_blank" class="link-btn">NOTEBOOK LM</a>
-            <a href="https://1.1.1.1/" target="_blank" class="link-btn" style="color:var(--neon)">СКАЧАТЬ VPN (CLOUDFLARE)</a>
+            <div style="background:var(--red); color:#fff; font-size:0.6rem; padding:3px; text-align:center; margin-bottom:5px;">! ТРЕБУЕТСЯ VPN ДЛЯ GOOGLE / CLAUDE !</div>
+            <a href="https://gemini.google.com/" target="_blank" class="btn">GOOGLE GEMINI</a>
+            <a href="https://chat.deepseek.com/" target="_blank" class="btn">DEEPSEEK (БЕЗ VPN)</a>
+            <a href="https://notebooklm.google.com/" target="_blank" class="btn">NOTEBOOK LM</a>
+            <a href="https://1.1.1.1/" target="_blank" class="btn" style="color:var(--neon)">СКАЧАТЬ VPN</a>
         </div>
         <div class="block">
-            <h2><i data-lucide="music"></i> МЕДИА</h2>
-            <a href="https://suno.com/" target="_blank" class="link-btn">SUNO (МУЗЫКА)</a>
-            <a href="https://leonardo.ai/" target="_blank" class="link-btn">LEONARDO (ЧЕРТЕЖИ)</a>
+            <h2><i data-lucide="palette"></i> МЕДИА</h2>
+            <a href="https://suno.com/" target="_blank" class="btn">SUNO AI</a>
+            <a href="https://leonardo.ai/" target="_blank" class="btn">LEONARDO</a>
         </div>
         <div class="block">
-            <h2><i data-lucide="image"></i> СКАНЕР</h2>
-            <p style="font-size:0.6rem;">ЮЗАЙ GEMINI: СКИНЬ ЕМУ ФОТО ЧЕРТЕЖА — ОН РАСШИФРУЕТ.</p>
+            <h2><i data-lucide="drafting-compass"></i> ЧЕРТЕЖИ</h2>
+            <p style="font-size:0.6rem;">ИСПОЛЬЗУЙ GEMINI ДЛЯ РАСПОЗНАВАНИЯ СХЕМ</p>
         </div>
     </div>
 
-    <div class="page-grid" x-show="tab === 7">
-        <div class="block block-left">
-            <h2><i data-lucide="coffee"></i> ЖУРНАЛЫ И РАДИО</h2>
-            <a href="https://zhurnalko.net/journal-18" target="_blank" class="link-btn">АРХИВ "МОДЕЛИСТ-КОНСТРУКТОР"</a>
-            <a href="https://zhurnalko.net/journal-41" target="_blank" class="link-btn">АРХИВ "ЮНЫЙ ТЕХНИК"</a>
-            <a href="http://retromagaz.ru/levsha/" target="_blank" class="link-btn">ЖУРНАЛ "ЛЕВША"</a>
-            <hr>
-            <div style="font-size:0.7rem;">РАДИО:</div>
-            <a href="https://радио.рф/station/road" target="_blank" class="link-btn">ДОРОЖНОЕ РАДИО</a>
-            <a href="https://www.radio-rating.ru/cat/radio/shanson" target="_blank" class="link-btn">РАДИО ШАНСОН</a>
+    <div class="page-grid" x-show="tab === 'coffee'">
+        <div class="block block-main">
+            <h2><i data-lucide="radio"></i> РАДИО БЕЛАРУСИ</h2>
+            <div style="overflow-y:auto; flex:1;">
+                <a href="https://radiopotok.ru/radio/227/" target="_blank" class="btn">АВТОРАДИО</a>
+                <a href="https://radiopotok.ru/radio/400/" target="_blank" class="btn">ДОРОЖНОЕ</a>
+                <a href="http://radiogrodno.by/" target="_blank" class="btn">РАДИО ГРОДНО</a>
+                <a href="https://radiostalica.by/" target="_blank" class="btn">СТАЛIЦА</a>
+                <a href="https://radiomir.by/" target="_blank" class="btn">РАДИО МИР</a>
+                <a href="https://rusradio.by/" target="_blank" class="btn">РУССКОЕ РАДИО</a>
+                <a href="https://liderfm.by/" target="_blank" class="btn">ЛИДЕР ФМ</a>
+            </div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="library"></i> АРХИВЫ</h2>
+            <a href="https://archive.org/details/modelist-konstruktor" target="_blank" class="btn">МОД-КОНСТРУКТОР</a>
+            <a href="https://archive.org/details/levsha-magazine" target="_blank" class="btn">ЛЕВША / ЮТ</a>
         </div>
         <div class="block">
             <h2><i data-lucide="smile"></i> ЮМОР</h2>
-            <a href="https://www.yaplakal.com/" target="_blank" class="link-btn">Я ПЛАКАЛЬ</a>
-            <a href="https://pikabu.ru/" target="_blank" class="link-btn">ПИКАБУ</a>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="radio"></i> ЭФИР</h2>
-            <div style="font-size:0.7rem; color:var(--neon)">144.500 MHz - АКТИВЕН</div>
+            <a href="https://www.yaplakal.com/" target="_blank" class="btn">ЯП</a>
+            <a href="https://pikabu.ru/" target="_blank" class="btn">ПИКАБУ</a>
         </div>
     </div>
 
-    <div class="modal" x-show="currentBox !== null">
-        <div class="modal-content">
-            <h2 x-text="'ЯЩИК №' + currentBox"></h2>
-            <textarea x-model="boxData[currentBox]" rows="10" style="width:100%; background:#000; color:var(--neon); border:1px solid var(--gold);"></textarea>
+    <div class="page-grid" x-show="tab === 'settings'">
+        <div class="block block-main">
+            <h2><i data-lucide="user"></i> ЛИЧНОЕ ДЕЛО</h2>
+            <p>ПОЗЫВНОЙ:</p>
+            <input type="text" placeholder="ВВЕДИТЕ ИМЯ...">
+            <p style="margin-top:10px;">СТАЖ:</p>
+            <input type="text" placeholder="ЛЕТ В ГАРАЖЕ...">
+            <div class="btn" style="margin-top:20px;">СОХРАНИТЬ В ПАМЯТЬ</div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="qr-code"></i> ССЫЛКА</h2>
+            <div style="background:#fff; width:100px; height:100px; margin:auto;"></div>
+            <p style="font-size:0.5rem; text-align:center; margin-top:5px;">QR ДЛЯ КОЛЛЕГ</p>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="refresh-cw"></i> ВЕРСИЯ</h2>
+            <div style="font-size:0.7rem;">ОБНОВЛЕНИЕ: 23.02.2026<br>СТАТУС: ОК</div>
+        </div>
+    </div>
+
+    <div class="modal" x-show="activeBox" x-cloak>
+        <div class="modal-box">
+            <h2 x-text="'ЗАПИСЬ: ' + activeBox"></h2>
+            <textarea rows="8" x-model="boxContent[activeBox]"></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
-                <button @click="saveBox()" class="link-btn" style="flex:1">СОХРАНИТЬ</button>
-                <button @click="currentBox = null" class="link-btn" style="flex:1">ЗАКРЫТЬ</button>
+                <button class="btn" @click="saveBox()" style="flex:1">СОХРАНИТЬ</button>
+                <button class="btn" @click="activeBox = null" style="flex:1">ЗАКРЫТЬ</button>
             </div>
         </div>
     </div>
 </main>
 
 <nav>
-    <template x-for="t in [1,2,3,4,5,6,7,8]">
-        <div class="nav-item" :class="tab === t ? 'active' : ''" @click="tab = t">
-            <span x-text="t"></span>
-        </div>
-    </template>
+    <div class="nav-item" :class="tab === 'home' ? 'active' : ''" @click="tab = 'home'"><i data-lucide="home"></i><span>ГЛАВНАЯ</span></div>
+    <div class="nav-item" :class="tab === 'box' ? 'active' : ''" @click="tab = 'box'"><i data-lucide="package"></i><span>СКЛАД</span></div>
+    <div class="nav-item" :class="tab === 'chat' ? 'active' : ''" @click="tab = 'chat'"><i data-lucide="message-square"></i><span>ЭФИР</span></div>
+    <div class="nav-item" :class="tab === 'tools' ? 'active' : ''" @click="tab = 'tools'"><i data-lucide="wrench"></i><span>ПУЛЬТ</span></div>
+    <div class="nav-item" :class="tab === 'zap' ? 'active' : ''" @click="tab = 'zap'"><i data-lucide="zap"></i><span>ПРОМТ</span></div>
+    <div class="nav-item" :class="tab === 'cpu' ? 'active' : ''" @click="tab = 'cpu'"><i data-lucide="cpu"></i><span>ИИ</span></div>
+    <div class="nav-item" :class="tab === 'coffee' ? 'active' : ''" @click="tab = 'coffee'"><i data-lucide="coffee"></i><span>ОТДЫХ</span></div>
+    <div class="nav-item" :class="tab === 'settings' ? 'active' : ''" @click="tab = 'settings'"><i data-lucide="settings"></i><span>ОПЦИИ</span></div>
 </nav>
 
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('artelApp', () => ({
-            tab: 1,
+        Alpine.data('artelTerminal', () => ({
+            tab: 'home',
             time: '',
             monthName: '',
             calendarDays: [],
-            currentBox: null,
-            boxData: { 1: '', 2: '', 3: '', 4: '' },
-            logsCount: 0,
+            activeBox: null,
+            boxContent: { 'МЕХАНИКА': '', 'ЭЛЕКТРИКА': '', 'КУЗОВ': '', 'РАЗНОЕ': '' },
+            logs: 0,
+            newMsg: '',
+            messages: [{user: 'СИСТЕМА', msg: 'ТЕРМИНАЛ АКТИВИРОВАН. ЖДУ КОМАНД.'}],
 
             init() {
                 this.updateTime();
                 setInterval(() => this.updateTime(), 1000);
                 this.buildCal();
                 lucide.createIcons();
-                // Загрузка данных из локального хранилища
-                const saved = localStorage.getItem('artel_storage');
-                if(saved) {
-                    this.boxData = JSON.parse(saved);
-                    this.updateLogCount();
+                if(localStorage.getItem('artel_data')) {
+                    this.boxContent = JSON.parse(localStorage.getItem('artel_data'));
+                    this.updateCount();
                 }
             },
             updateTime() { this.time = new Date().toLocaleTimeString(); },
             buildCal() {
                 const now = new Date();
                 this.monthName = now.toLocaleString('ru', { month: 'long' }).toUpperCase();
-                const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                for(let i=1; i<=days; i++) {
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const firstDay = new Date(year, month, 1).getDay();
+                let offset = firstDay === 0 ? 6 : firstDay - 1;
+                for(let i=0; i<offset; i++) this.calendarDays.push({num: ''});
+                for(let i=1; i<=daysInMonth; i++) {
                     this.calendarDays.push({ num: i, today: i === now.getDate() });
                 }
             },
-            openBox(i) { this.currentBox = i; },
+            openBox(name) { this.activeBox = name; },
             saveBox() {
-                localStorage.setItem('artel_storage', JSON.stringify(this.boxData));
-                this.updateLogCount();
-                this.currentBox = null;
+                localStorage.setItem('artel_data', JSON.stringify(this.boxContent));
+                this.updateCount();
+                this.activeBox = null;
             },
-            updateLogCount() {
-                this.logsCount = Object.values(this.boxData).filter(t => t.length > 0).length;
+            updateCount() {
+                this.logs = Object.values(this.boxContent).filter(v => v.length > 0).length;
+            },
+            sendMsg() {
+                if(!this.newMsg) return;
+                this.messages.push({user: 'МАСТЕР', msg: this.newMsg});
+                this.newMsg = '';
             }
         }));
     });
