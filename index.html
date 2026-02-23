@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>АРТЕЛЬ: v.12.0 [GRAND MASTER]</title>
+    <title>Артель Бенцова и Фордова "СИНЯЯ ИЗОЛЕНТА"</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -29,7 +29,6 @@
             text-transform: uppercase;
         }
 
-        /* Эффект мерцания ЭЛТ */
         body::after {
             content: " ";
             position: fixed;
@@ -41,33 +40,33 @@
             z-index: 1000;
         }
 
-        header { border-bottom: 2px solid var(--gold-dim); padding: 10px; background: var(--panel); text-align: center; }
+        header { border-bottom: 2px solid var(--gold-dim); padding: 12px; background: var(--panel); text-align: center; }
         .main-view { flex: 1; padding: 15px; overflow-y: auto; }
         
         .grid-layout {
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
+            grid-template-columns: 1.1fr 0.9fr;
             grid-template-rows: 1fr 1fr;
             gap: 15px;
             height: 100%;
-            min-height: 550px;
         }
 
         .block {
             background: var(--panel);
             border: 2px solid var(--gold-dim);
-            padding: 15px;
+            padding: 12px;
             box-shadow: inset 0 0 20px #000;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         .block-main { grid-row: span 2; }
 
-        h2 { margin: 0 0 10px 0; font-size: 0.9rem; color: var(--gold); border-bottom: 1px solid var(--gold-dim); padding-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        h2 { margin: 0 0 10px 0; font-size: 0.75rem; color: var(--gold); border-bottom: 1px solid var(--gold-dim); padding-bottom: 5px; display: flex; align-items: center; gap: 8px; }
         
         .btn {
             background: #1a1714; border: 1px solid var(--gold-dim); color: var(--gold);
-            padding: 10px; font-size: 0.7rem; text-align: center; cursor: pointer;
+            padding: 8px; font-size: 0.65rem; text-align: center; cursor: pointer;
             margin-bottom: 5px; display: block; text-decoration: none;
         }
         .btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 10px var(--gold); }
@@ -75,91 +74,112 @@
         input { background: #000; color: var(--gold); border: 1px solid var(--gold-dim); padding: 8px; width: 100%; box-sizing: border-box; outline: none; font-family: monospace; }
 
         nav { background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--gold-dim); }
-        .nav-item { color: var(--gold-dim); cursor: pointer; flex: 1; text-align: center; transition: 0.3s; }
+        .nav-item { color: var(--gold-dim); cursor: pointer; flex: 1; text-align: center; }
         .nav-item.active { color: var(--gold); filter: drop-shadow(0 0 8px var(--gold)); }
 
         .neon { color: var(--gold); text-shadow: 0 0 5px var(--gold); }
         .gm-title { color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue); font-weight: bold; }
+        .mastodon-item { border-left: 2px solid var(--neon-blue); padding-left: 10px; margin-bottom: 8px; }
+        
+        .scroll-area { flex: 1; overflow-y: auto; padding-right: 5px; font-size: 0.65rem; }
+        .scroll-area p { margin: 4px 0; line-height: 1.2; }
         
         #chat-scroller { flex: 1; overflow-y: auto; font-size: 0.75rem; margin-bottom: 10px; }
-        .msg { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+        .msg { margin-bottom: 8px; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; }
     </style>
 </head>
 <body x-data="artelApp">
 
 <header>
-    <div class="neon" style="letter-spacing: 5px; font-weight: bold;">АРТЕЛЬ • УПРАВЛЕНИЕ ОБЛАКОМ • v.12.0</div>
+    <div class="neon" style="letter-spacing: 1px; font-weight: bold; font-size: 0.8rem;">
+        Артель Бенцова и Фордова "СИНЯЯ ИЗОЛЕНТА"
+    </div>
 </header>
 
 <main class="main-view">
     
     <div class="grid-layout" x-show="tab === 'home'">
         <div class="block block-main">
-            <h2><i data-lucide="scroll"></i> УСТАВ ВЕЛИКОЙ АРТЕЛИ</h2>
-            <div style="font-size: 0.7rem;">
-                <p class="neon">ГРАНД МАСТЕР СИНЕЙ КАТУШКИ ПОВЕЛЕВАЕТ:</p>
-                <p>1. ТБ — ПИСАНА КРОВЬЮ, ЧИТАЙ ГЛАЗАМИ.</p>
-                <p>2. СИНЯЯ ИЗОЛЕНТА — СИЛА. ЧЕРНАЯ — ДЛЯ ДИЛЕТАНТОВ.</p>
-                <p>3. МАСТОДОНТЫ И ГРАНД МАСТЕРЫ МОГУТ ПОВЫШАТЬ ЛИЧИНОК.</p>
-                <hr style="border-color: var(--gold-dim)">
-                <p class="gm-title">ТЕКУЩИЙ СТАТУС: В СЕТИ</p>
+            <h2><i data-lucide="shield"></i> ВЫСШИЙ СОВЕТ АРТЕЛИ</h2>
+            <div style="margin-bottom: 15px;">
+                <div class="mastodon-item">
+                    <div class="gm-title">БЕНЦОВ & ФОРДОВ</div>
+                    <div style="font-size: 0.55rem; color: gray;">ОСНОВАТЕЛИ АРТЕЛИ</div>
+                </div>
+                <div class="mastodon-item">
+                    <div class="gm-title">ВИТАЛИЙ</div>
+                    <div style="font-size: 0.55rem; color: gray;">ГРАНД МАСТЕР СИНЕЙ КАТУШКИ</div>
+                </div>
+            </div>
+
+            <h2><i data-lucide="scroll"></i> 10 ЗАПОВЕДЕЙ (УСТАВ)</h2>
+            <div class="scroll-area">
+                <p><span class="neon">1.</span> ТБ — НЕ ДОГМА, А ЖИЗНЬ. ПАЛЬЦЫ НЕ ОТРАСТАЮТ.</p>
+                <p><span class="neon">2.</span> СИНЯЯ ИЗОЛЕНТА — ФУНДАМЕНТ ВСЕЛЕННОЙ.</p>
+                <p><span class="neon">3.</span> ЧЕРНАЯ ИЗОЛЕНТА — ТОЛЬКО ДЛЯ ВРЕМЕННЫХ СХЕМ.</p>
+                <p><span class="neon">4.</span> ИНСТРУМЕНТ ВЗЯЛ — ОЧИСТИ. СЛОМАЛ — КУПИ НОВЫЙ.</p>
+                <p><span class="neon">5.</span> ЕСЛИ НЕ КРУТИТСЯ — ВОЗЬМИ РЫЧАГ БОЛЬШЕ.</p>
+                <p><span class="neon">6.</span> ЧИСТОТА В БОКСЕ — ПРИЗНАК СВОБОДНОГО ВРЕМЕНИ.</p>
+                <p><span class="neon">7.</span> КТО НЕ ЧИНИТ — ТОТ НЕ ЕСТ.</p>
+                <p><span class="neon">8.</span> МАСТОДОНТЫ И ГРАНД МАСТЕР ВСЕГДА ПРАВЫ.</p>
+                <p><span class="neon">9.</span> ЛИЧИНКА ОБЯЗАНА СЛУШАТЬ И ПОДАВАТЬ КЛЮЧИ МОЛЧА.</p>
+                <p><span class="neon">10.</span> СИЛА АРТЕЛИ — В ЕДИНСТВЕ И КАНИСТРЕ WD-40.</p>
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="calendar"></i> КАЛЕНДАРЬ</h2>
-            <div id="date-display" class="neon" style="text-align:center; font-size:1.2rem;" x-text="todayDate"></div>
+            <h2><i data-lucide="calendar"></i> ДАТА</h2>
+            <div class="neon" style="text-align:center; font-size:1rem;" x-text="todayDate"></div>
         </div>
         <div class="block">
-            <h2><i data-lucide="clock"></i> СИСТЕМНОЕ ВРЕМЯ</h2>
-            <div class="neon" style="font-size: 2rem; text-align: center;" x-text="time"></div>
+            <h2><i data-lucide="clock"></i> ВРЕМЯ</h2>
+            <div class="neon" style="font-size: 1.6rem; text-align: center;" x-text="time"></div>
         </div>
     </div>
 
     <div class="grid-layout" x-show="tab === 'chat'">
         <div class="block block-main">
-            <h2><i data-lucide="cloud"></i> ЭФИР ГРАНД МАСТЕРА</h2>
+            <h2><i data-lucide="radio"></i> ЭФИР "СИНЕЙ ИЗОЛЕНТЫ"</h2>
             <div id="chat-scroller">
                 <template x-for="m in messages">
                     <div class="msg">
-                        <span :class="m.rank === 'ГРАНД МАСТЕР' ? 'gm-title' : 'neon'" x-text="'[' + m.rank + '] ' + m.user_name"></span>: 
+                        <span :class="m.rank.includes('ГРАНД') || m.rank.includes('МАСТОДОНТ') ? 'gm-title' : 'neon'" x-text="'[' + m.rank + '] ' + m.user_name"></span>: 
                         <span x-text="m.content"></span>
                     </div>
                 </template>
             </div>
             <div style="display:flex; gap:5px;">
-                <input type="text" x-model="chatInput" @keyup.enter="sendToCloud" placeholder="ВВОД СООБЩЕНИЯ...">
-                <button class="btn" @click="sendToCloud" style="margin:0; width:60px;">OK</button>
+                <input type="text" x-model="chatInput" @keyup.enter="sendToCloud" placeholder="СООБЩЕНИЕ...">
+                <button class="btn" @click="sendToCloud" style="margin:0; width:50px;">OK</button>
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="zap"></i> РАНГИ</h2>
-            <div style="font-size:0.6rem;">
-                ВИТАЛИЙ: <span class="gm-title">ГРАНД МАСТЕР</span><br>
-                ОСТАЛЬНЫЕ: <span style="color:gray;">ЛИЧИНКИ</span>
-            </div>
+            <h2><i data-lucide="signal"></i> СТАТУС</h2>
+            <div style="font-size:0.6rem;" :style="{color: isOnline ? '#0f0' : '#f00'}" x-text="cloudStatus"></div>
         </div>
         <div class="block">
-            <h2><i data-lucide="activity"></i> СИНХРОН</h2>
-            <div style="font-size:0.6rem;" x-text="cloudStatus"></div>
+            <h2><i data-lucide="database"></i> PROJECT ID</h2>
+            <div style="font-size:0.45rem; color:var(--gold); opacity: 0.7; word-break: break-all;">grsszunlfmehyykkvccj</div>
         </div>
     </div>
 
     <div class="grid-layout" x-show="tab === 'settings'">
         <div class="block block-main">
-            <h2><i data-lucide="settings"></i> КОНФИГУРАЦИЯ</h2>
-            <p class="gm-title">ГРАНД МАСТЕР СИНЕЙ КАТУШКИ</p>
-            <p style="font-size:0.6rem;">PROJECT: grsszunlfmehyykkvccj</p>
-            <div class="btn" @click="alert('СИСТЕМА ОБНОВЛЕНА')">ПЕРЕЗАГРУЗИТЬ ЯДРО</div>
+            <h2><i data-lucide="user-cog"></i> ЛИЧНЫЙ ТЕРМИНАЛ</h2>
+            <p class="gm-title" style="margin-bottom: 2px;">ВИТАЛИЙ</p>
+            <p class="neon" style="font-size: 0.6rem; margin-top: 0;">ГРАНД МАСТЕР</p>
+            <hr style="border-color:var(--gold-dim); margin: 15px 0;">
+            <div class="btn" onclick="location.reload()">ПЕРЕЗАПУСК</div>
+            <div class="btn" @click="alert('СИСТЕМА СИНХРОНИЗИРОВАНА')">СИНХРОНИЗАЦИЯ</div>
         </div>
         <div class="block">
-            <h2><i data-lucide="qr-code"></i> QR КЛЮЧ</h2>
-            <div style="background:#fff; padding:5px; margin:auto; width:100px; height:100px;">
+            <h2><i data-lucide="qr-code"></i> ВХОД</h2>
+            <div style="background:#fff; padding:5px; margin:auto; width:80px; height:80px;">
                 <img id="qr-img" style="width:100%; height:100%;">
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="database"></i> БАЗА</h2>
-            <div style="font-size:0.5rem; color:var(--gold);">CONNECTED TO SUPABASE POSTGRES</div>
+            <h2><i data-lucide="info"></i> СБОРКА</h2>
+            <div style="font-size:0.5rem; color:var(--gold);">v.16.1 FINAL NAME FIX<br>BENTSOV & FORDOV</div>
         </div>
     </div>
 
@@ -172,11 +192,11 @@
 </nav>
 
 <script>
-    // --- ДАННЫЕ ВИТАЛИЯ ---
     const SB_URL = 'https://grsszunlfmehyykkvccj.supabase.co';
-    const SB_KEY = 'sb_publishable_lOjqRJ2R_tHLo0GiLPjaYA_6UYCfCaX'; 
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdyc3N6dW5sZm1laHl5a2t2Y2NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2MTkwMTQsImV4cCI6MjA4NzE5NTAxNH0.sklK5pcXkSuj3upLdLzkMUQWSeLgPfG0U0qZwhAHghw'; 
 
-    const supabase = supabase.createClient(SB_URL, SB_KEY);
+    const { createClient } = supabase;
+    const sbClient = createClient(SB_URL, SB_KEY);
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
@@ -185,7 +205,8 @@
             todayDate: '',
             chatInput: '',
             messages: [],
-            cloudStatus: 'ПОДКЛЮЧЕНИЕ...',
+            cloudStatus: 'ОЖИДАНИЕ...',
+            isOnline: false,
 
             init() {
                 this.updateClock();
@@ -205,19 +226,17 @@
             },
 
             async fetchChat() {
-                const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                if (data) {
-                    this.messages = data;
-                    this.cloudStatus = 'ОБЛАКО: OK';
-                } else {
-                    this.cloudStatus = 'ОБЛАКО: ЖДЕТ ТАБЛИЦУ';
-                    console.log(error);
+                const { data, error } = await sbClient.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
+                if (!error) {
+                    this.messages = data || [];
+                    this.cloudStatus = 'ЭФИР: OK';
+                    this.isOnline = true;
                 }
                 this.scrollDown();
             },
 
             listenChat() {
-                supabase.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                sbClient.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
                     this.messages.push(payload.new);
                     this.scrollDown();
                 }).subscribe();
@@ -225,7 +244,7 @@
 
             async sendToCloud() {
                 if(!this.chatInput.trim()) return;
-                await supabase.from('messages').insert([{ 
+                await sbClient.from('messages').insert([{ 
                     user_name: 'ВИТАЛИЙ', 
                     rank: 'ГРАНД МАСТЕР', 
                     content: this.chatInput 
