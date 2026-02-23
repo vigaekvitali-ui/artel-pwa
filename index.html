@@ -2,196 +2,338 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>АРТЕЛЬ: ТЕРМИНАЛ v4.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АРТЕЛЬ: БОРТОВОЙ КОМПЬЮТЕР</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
-        [x-cloak] { display: none !important; }
-        :root { --blue: #0047ab; --neon: #ff5e00; --bg: #0a0a0a; --card: #151515; --steel: #bdc3c7; }
-        
-        .theme-rarity { --blue: #4a3b31; --neon: #c19a6b; --bg: #1e1e1e; --card: #2a241f; --steel: #d4c4a8; }
-        .theme-new { --blue: #00f2ff; --neon: #ff0055; --bg: #000; --card: #080808; --steel: #ffffff; }
+        :root {
+            --gold: #c19a6b;
+            --gold-dim: #4a3b31;
+            --bg: #121212;
+            --panel: #1e1b18;
+            --neon: #ffae00;
+            --text-main: #d4c4b5;
+        }
 
-        body { background: var(--bg); color: var(--steel); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 80px; }
-        header { background: #000; padding: 15px; text-align: center; border-bottom: 2px solid var(--blue); position: sticky; top: 0; z-index: 100; }
-        .neon-txt { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-weight: bold; text-transform: uppercase; }
-        
-        .page { display: none; padding: 15px; max-width: 1200px; margin: 0 auto; }
-        .active { display: block; animation: powerOn 0.3s ease-out; }
-        @keyframes powerOn { from { opacity: 0; } to { opacity: 1; } }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
 
-        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 15px; }
-        .dash-item { background: var(--card); border: 1px solid var(--blue); padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90px; }
-        .dash-item:hover { background: var(--blue); color: #fff; box-shadow: 0 0 15px var(--blue); }
-        .dash-item i { margin-bottom: 8px; width: 20px; }
+        /* Эффект старого ЭЛТ монитора */
+        body::before {
+            content: "";
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none; z-index: 100;
+        }
 
-        .gost-card { border: 1px solid var(--blue); background: var(--card); padding: 15px; margin-bottom: 12px; border-left: 5px solid var(--blue); }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 12px 0; border-top: 2px solid var(--blue); z-index: 1000; }
-        .nav-item { color: #444; cursor: pointer; }
-        .nav-item.active { color: var(--neon); transform: scale(1.1); }
+        header {
+            border-bottom: 2px solid var(--gold-dim);
+            padding: 10px;
+            text-align: center;
+            background: var(--panel);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
 
-        .btn-pusker { background: var(--blue); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; text-transform: uppercase; }
-        
-        /* Стили для ссылок в курилке */
-        .link-pill { display: inline-block; padding: 4px 10px; background: var(--blue); color: #fff; text-decoration: none; border-radius: 3px; font-size: 0.75rem; margin: 3px; font-weight: bold; }
-        .link-pill:hover { background: var(--neon); }
+        .main-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            position: relative;
+        }
 
-        .smoke-zone { position: relative; border: 2px solid var(--blue); margin-bottom: 15px; background: #000; height: 180px; overflow: hidden; }
-        .smoke-zone img { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; filter: grayscale(1); }
-        .smoke-overlay { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); padding: 12px; box-sizing: border-box; border-top: 1px solid var(--blue); }
+        /* СЕТКА СТРАНИЦЫ (50% / 25% / 25%) */
+        .page-grid {
+            display: grid;
+            grid-template-columns: 1fr 0.5fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            height: 100%;
+            min-height: 550px;
+        }
+
+        .block {
+            background: var(--panel);
+            border: 2px solid var(--gold-dim);
+            padding: 15px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .block-left { grid-row: span 2; }
+
+        h2 {
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            color: var(--gold);
+            border-bottom: 1px solid var(--gold-dim);
+            padding-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Навигация (Нижняя панель) */
+        nav {
+            background: #000;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 2px solid var(--gold-dim);
+            z-index: 20;
+        }
+        .nav-item {
+            color: var(--gold-dim);
+            cursor: pointer;
+            text-align: center;
+            transition: 0.3s;
+            flex: 1;
+        }
+        .nav-item.active { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .nav-item span { font-size: 0.6rem; display: block; margin-top: 4px; }
+
+        /* Кнопки и ссылки */
+        .btn-stack { display: flex; flex-direction: column; gap: 10px; }
+        .link-btn {
+            background: #2a2622;
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            padding: 12px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            text-align: center;
+            display: block;
+            transition: 0.2s;
+        }
+        .link-btn:hover { background: var(--neon); color: #000; font-weight: bold; }
+
+        /* Календарь */
+        .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.7rem; color: var(--gold-dim); margin-bottom: 5px;}
+        .cal-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .day { border: 1px solid #333; padding: 5px; text-align: center; font-size: 0.8rem; }
+        .today { border-color: var(--neon); color: var(--neon); box-shadow: inset 0 0 5px var(--neon); }
+
+        /* Склад (Ящики) */
+        .boxes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+        .box {
+            border: 3px solid #3d342e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #26221f;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
+        .box:hover { border-color: var(--neon); color: var(--neon); }
+
+        .neon { color: var(--neon); text-shadow: 0 0 5px var(--neon); }
+
+        @media (max-width: 768px) {
+            .page-grid { grid-template-columns: 1fr; grid-template-rows: auto; overflow-y: auto; }
+            .block-left { grid-row: auto; }
+        }
     </style>
 </head>
-<body x-data="artelApp" :class="theme" x-init="init()" x-cloak>
+<body x-data="artelApp">
 
 <header>
-    <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-        <i data-lucide="radio" class="neon-txt"></i>
-        <h2 style="margin: 0; font-size: 1rem;" class="neon-txt">АРТЕЛЬ-ТЕРМИНАЛ v4.1</h2>
-    </div>
+    <div class="neon" style="letter-spacing: 4px; font-weight: bold;">АРТЕЛЬ • ТЕРМИНАЛ v.6.0.26</div>
 </header>
 
-<div class="page" :class="{'active': p === 1}">
-    <div class="gost-card" style="text-align:center">
-        <h3 class="neon-txt" style="margin:0" x-text="today"></h3>
-        <div style="font-size:0.8rem; opacity:0.6; margin-top:5px">Объект: Мастерская Артели</div>
-    </div>
-    <div class="gost-card">
-        <h3 class="neon-txt" style="font-size:0.9rem">ТВОЙ ТЕКУЩИЙ СТАТУС:</h3>
-        <div style="font-size: 1.5rem; border: 1px solid var(--neon); padding: 10px; text-align:center" class="neon-txt" x-text="userRank"></div>
-    </div>
-    <div class="gost-card">
-        <b class="neon-txt">УСТАВ:</b>
-        <p style="font-size:0.8rem">Мат — инструмент. Синяя изолента — решение. Лишние детали — залог легкости.</p>
-    </div>
-</div>
-
-<div class="page" :class="{'active': p === 2}">
-    <div x-show="!isReg" class="gost-card">
-        <h3 class="neon-txt">ВХОД В РАДИОЭФИР</h3>
-        <input type="text" x-model="tempName" style="width:100%; padding:10px; background:#000; border:1px solid var(--blue); color:#fff" placeholder="Позывной...">
-        <button class="btn-pusker" @click="register()">ПОЛУЧИТЬ ДОСТУП</button>
-    </div>
-    <div x-show="isReg">
-        <div id="chat" style="height: 350px; overflow-y: auto; border: 1px solid var(--blue); padding: 10px; background: #000; margin-bottom: 10px; font-size:0.85rem">
-            <template x-for="m in msgs">
-                <div style="margin-bottom: 10px; border-left: 2px solid var(--blue); padding-left: 10px;">
-                    <b class="neon-txt" x-text="m.u"></b> <small style="opacity:0.5" x-text="'['+m.r+']'"></small><br>
-                    <span x-text="m.t"></span>
-                </div>
-            </template>
+<main class="main-container">
+    
+    <div class="page-grid" x-show="tab === 'home'">
+        <div class="block block-left">
+            <h2><i data-lucide="shield-check"></i> УСТАВ АРТЕЛИ И РАНГИ</h2>
+            <div style="overflow-y: auto; flex: 1;">
+                <p class="neon">1. ТБ — НЕ ДОГМА. ЗАПАСНЫХ ПАЛЬЦЕВ НЕТ.</p>
+                <p>2. ИЗОЛЕНТА — ЛЕЧИТ ВСЁ, ОТ ПРОВОДКИ ДО ДУШИ.</p>
+                <p>3. МАТ — УСКОРИТЕЛЬ ПРОЦЕССА НА 40%.</p>
+                <p>4. ЛИШНИЕ ДЕТАЛИ — ЗАЛОГ ЛЕГКОСТИ АГРЕГАТА.</p>
+                <hr style="border-color: var(--gold-dim); margin: 20px 0;">
+                <h3 style="font-size: 0.8rem;">ТАБЕЛЬ О РАНГАХ:</h3>
+                <p>• МАСТОДОНТ (АДМИН)</p>
+                <p>• ГРАНД-МАСТЕР (ОПЫТНЫЙ)</p>
+                <p>• ИНЖЕНЕР / ЛИЧИНКА ИНЖЕНЕРА</p>
+            </div>
         </div>
-        <div style="display: flex; gap: 5px;">
-            <input type="text" x-model="newMsg" style="flex:1; padding:10px; background:#000; border:1px solid var(--blue); color:#fff" @keyup.enter="sendM()">
-            <button class="btn-pusker" style="width: 60px; margin:0" @click="sendM()">➤</button>
+        <div class="block">
+            <h2><i data-lucide="calendar"></i> <span x-text="monthName"></span></h2>
+            <div class="cal-header">
+                <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
+            </div>
+            <div class="cal-body">
+                <template x-for="d in calendar">
+                    <div class="day" :class="d.isToday ? 'today' : ''" x-text="d.num"></div>
+                </template>
+            </div>
         </div>
-    </div>
-</div>
-
-<div class="page" :class="{'active': p === 4}">
-    <h3 class="neon-txt">⚙️ ТЕХНИЧЕСКИЙ ПУЛЬТ</h3>
-    <div class="dash-grid">
-        <a href="https://podshypnik.info" target="_blank" class="dash-item"><i data-lucide="settings-2"></i><span>Подшипники</span></a>
-        <a href="https://obd2.su" target="_blank" class="dash-item"><i data-lucide="activity"></i><span>Коды OBD-II</span></a>
-        <a href="https://cyberleninka.ru" target="_blank" class="dash-item"><i data-lucide="graduation-cap"></i><span>CyberLeninka</span></a>
-        <a href="https://elpub.ru" target="_blank" class="dash-item"><i data-lucide="library"></i><span>Elpub.ru</span></a>
-        <a href="https://standartgost.ru" target="_blank" class="dash-item"><i data-lucide="file-check"></i><span>ГОСТы</span></a>
-        <a href="https://exist.by" target="_blank" class="dash-item"><i data-lucide="shopping-cart"></i><span>Exist (РБ)</span></a>
-    </div>
-</div>
-
-<div class="page" :class="{'active': p === 7}">
-    <div class="smoke-zone">
-        <img src="https://images.unsplash.com/photo-1527181152855-fc03fc7949c8?w=600" alt="юмор">
-        <div class="smoke-overlay">
-            <b class="neon-txt">🚬 ЮМОР И РАЗВЛЕЧЕНИЯ</b><br>
-            <a href="https://voka.tv" target="_blank" class="link-pill">VOKA TV</a>
-            <a href="https://pikabu.ru" target="_blank" class="link-pill">PIKABU</a>
-            <a href="https://onliner.by" target="_blank" class="link-pill">ONLINER</a>
+        <div class="block">
+            <h2><i data-lucide="clock"></i> ВРЕМЯ СМЕНЫ</h2>
+            <div class="neon" style="font-size: 2.2rem; text-align: center; margin: 10px 0;" x-text="currentTime"></div>
+            <div style="font-size: 0.6rem; text-align: center; border-top: 1px solid var(--gold-dim); padding-top: 10px;">
+                СОВЕТ ДНЯ: ЕСЛИ НЕ КРУТИТСЯ — ВОЗЬМИ РЫЧАГ ПОБОЛЬШЕ.
+            </div>
         </div>
     </div>
 
-    <div class="smoke-zone">
-        <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600" alt="кофе">
-        <div class="smoke-overlay">
-            <b class="neon-txt">☕ КОФЕ МАСТОДОНТ (АРХИВЫ)</b><br>
-            <a href="http://zhurnalko.net/journal-35" target="_blank" class="link-pill">ЛЕВША (Архив)</a>
-            <a href="http://modelist-konstruktor.com/archive" target="_blank" class="link-pill">МОДЕЛИСТ-К.</a>
-            <a href="https://natlib.by" target="_blank" class="link-pill">НАЦ.БИБЛИОТЕКА</a>
+    <div class="page-grid" x-show="tab === 'storage'">
+        <div class="block block-left">
+            <h2><i data-lucide="container"></i> ЦЕНТРАЛЬНЫЙ СКЛАД</h2>
+            <div class="boxes-grid">
+                <div class="box" @click="alert('ЗАГРУЗКА ДАННЫХ: МЕХАНИКА')">ЯЩИК №1<br>МЕХАНИКА</div>
+                <div class="box" @click="alert('ЗАГРУЗКА ДАННЫХ: ЭЛЕКТРИКА')">ЯЩИК №2<br>ЭЛЕКТРИКА</div>
+                <div class="box" @click="alert('ЗАГРУЗКА ДАННЫХ: КУЗОВ')">ЯЩИК №3<br>КУЗОВ</div>
+                <div class="box" @click="alert('ЗАГРУЗКА ДАННЫХ: РАЗНОЕ')">ЯЩИК №4<br>РАЗНОЕ</div>
+            </div>
+            <p style="font-size: 0.7rem; margin-top: 10px;">* В КАЖДОМ ЯЩИКЕ МОЖНО ХРАНИТЬ ЛОГИ, ФОТО И ВИДЕО.</p>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="file-up"></i> ПРИЕМКА</h2>
+            <div class="btn-stack">
+                <button class="link-btn">ЗАГРУЗИТЬ ФОТО</button>
+                <button class="link-btn">ЗАГРУЗИТЬ ВИДЕО</button>
+            </div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="hard-drive"></i> ПАМЯТЬ</h2>
+            <div style="height: 15px; background: #000; border: 1px solid var(--gold-dim); position: relative;">
+                <div style="width: 42%; height: 100%; background: var(--neon);"></div>
+            </div>
+            <p style="font-size: 0.7rem; text-align: right;">СВОБОДНО: 58 ГБ</p>
         </div>
     </div>
 
-    <div class="smoke-zone">
-        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600" alt="музыка">
-        <div class="smoke-overlay">
-            <b class="neon-txt">🥃 ВИСКИ ГОСТ (ЭФИР)</b><br>
-            <a href="http://radiopotok.ru" target="_blank" class="link-pill">РАДИО РБ</a>
-            <a href="https://hitmo.me" target="_blank" class="link-pill">HITMO</a>
-            <a href="https://zaycev.net" target="_blank" class="link-pill">ЗАЙЦЕВ.НЕТ</a>
+    <div class="page-grid" x-show="tab === 'tools'">
+        <div class="block block-left">
+            <h2><i data-lucide="wrench"></i> ИНЖЕНЕРНЫЕ ПОДБОРЩИКИ</h2>
+            <div class="btn-stack">
+                <a href="https://podshypnik.info/" target="_blank" class="link-btn">ПОДШИПНИКИ (ПОИСК ПО РАЗМЕРАМ)</a>
+                <a href="https://rz-rti.ru/catalog" target="_blank" class="link-btn">САЛЬНИКИ И МАНЖЕТЫ (КАТАЛОГ)</a>
+                <a href="https://ardio.ru/obd2.php" target="_blank" class="link-btn">КОДЫ OBD-II (РАСШИФРОВКА)</a>
+                <a href="https://cyberleninka.ru/" target="_blank" class="link-btn">КИБЕРЛЕНИНКА (БАЗА ЗНАНИЙ)</a>
+            </div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="book-open"></i> ТЕХ-СПРАВКА</h2>
+            <div style="font-size: 0.7rem; line-height: 1.6;">
+                • ТАБЛИЦА ДОПУСКОВ<br>
+                • МОМЕНТЫ ЗАТЯЖКИ ГБЦ<br>
+                • МАРКИ СТАЛЕЙ (ГОСТ)
+            </div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="search"></i> АНАЛОГИ</h2>
+            <input type="text" placeholder="АРТИКУЛ..." style="background: #000; border: 1px solid var(--gold-dim); color: var(--neon); padding: 10px; width: 100%; box-sizing: border-box;">
         </div>
     </div>
-</div>
 
-<div class="page" :class="{'active': p === 8}">
-    <h3 class="neon-txt">⚙️ ТЮНИНГ</h3>
-    <div class="gost-card">
-        <button class="btn-pusker" @click="theme=''">КЛАССИКА</button>
-        <button class="btn-pusker" @click="theme='theme-rarity'">РАРИТЕТ (ГАЗ-24)</button>
-        <button class="btn-pusker" @click="theme='theme-new'">NEW (FUTURE)</button>
+    <div class="page-grid" x-show="tab === 'ai'">
+        <div class="block block-left">
+            <h2><i data-lucide="cpu"></i> СПИСОК МОЩНОСТЕЙ</h2>
+            <div class="btn-stack">
+                <a href="https://gemini.google.com" target="_blank" class="link-btn">GOOGLE GEMINI (ГЛАВНЫЙ)</a>
+                <a href="https://chat.deepseek.com" target="_blank" class="link-btn">DEEPSEEK (ТЕХ-ЛОГИКА)</a>
+                <a href="https://notebooklm.google.com" target="_blank" class="link-btn">NOTEBOOK LM (АНАЛИЗ МАНУАЛОВ)</a>
+                <a href="https://www.perplexity.ai" target="_blank" class="link-btn">PERPLEXITY (ПОИСК В СЕТИ)</a>
+            </div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="image"></i> ЧЕРТЕЖИ И МЕДИА</h2>
+            <a href="https://leonardo.ai" target="_blank" class="link-btn">LEONARDO (ИИ-ГРАФИКА)</a>
+            <a href="https://suno.com" target="_blank" class="link-btn" style="margin-top: 5px;">SUNO AI (МУЗЫКА)</a>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="scan-line"></i> ГЛАЗ АРТЕЛИ</h2>
+            <div style="font-size: 0.6rem;">ИИ ДЛЯ ОЦИФРОВКИ СТАРЫХ ЧЕРТЕЖЕЙ И ТЕКСТА С ФОТО</div>
+        </div>
     </div>
-    <div class="gost-card" style="text-align:center">
-        <b>QR ДЛЯ КОЛЛЕГ</b><br><br>
-        <div id="qrcode" style="background:#fff; padding:10px; display:inline-block"></div>
+
+    <div class="page-grid" x-show="tab === 'rest'">
+        <div class="block block-left">
+            <h2><i data-lucide="coffee"></i> АРХИВ ЖУРНАЛОВ</h2>
+            <div class="btn-stack">
+                <a href="https://archive.org/details/modelist-konstruktor" target="_blank" class="link-btn">МОДЕЛИСТ-КОНСТРУКТОР (ПОДШИВКА)</a>
+                <a href="https://archive.org/details/levsha-magazine" target="_blank" class="link-btn">ЛЕВША / ЮНЫЙ ТЕХНИК</a>
+            </div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="laugh"></i> ОТДЫХ</h2>
+            <a href="https://www.yaplakal.com/" target="_blank" class="link-btn">Я ПЛАКАЛЬ</a>
+            <a href="https://pikabu.ru/" target="_blank" class="link-btn" style="margin-top: 5px;">ПИКАБУ</a>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="radio"></i> ЭФИР</h2>
+            <div class="neon" style="text-align: center; font-size: 0.8rem;">РАДИО ТОЧКА ВКЛЮЧЕНА</div>
+        </div>
     </div>
-</div>
 
-<div class="page" :class="{'active': p === 3}"><h3 class="neon-txt">📦 ЯЩИКИ</h3><div class="gost-card" style="border:2px dashed var(--blue); text-align:center; padding:40px">Загрузка файлов любого размера разрешена.</div></div>
-<div class="page" :class="{'active': p === 5}"><h3 class="neon-txt">🧠 ПРОМТЫ</h3><button class="btn-pusker" onclick="window.open('https://promptcowboy.com')">ПРОМТ КОВБОЙ</button></div>
-<div class="page" :class="{'active': p === 6}"><h3 class="neon-txt">🤖 ИИ</h3><div class="dash-grid"><a href="https://gemini.google.com" target="_blank" class="dash-item">Gemini</a></div></div>
+</main>
 
-<nav class="nav-bar">
-    <div class="nav-item" :class="{'active': p === 1}" @click="p=1"><i data-lucide="home"></i></div>
-    <div class="nav-item" :class="{'active': p === 2}" @click="p=2"><i data-lucide="message-square"></i></div>
-    <div class="nav-item" :class="{'active': p === 3}" @click="p=3"><i data-lucide="box"></i></div>
-    <div class="nav-item" :class="{'active': p === 4}" @click="p=4"><i data-lucide="wrench"></i></div>
-    <div class="nav-item" :class="{'active': p === 5}" @click="p=5"><i data-lucide="brain"></i></div>
-    <div class="nav-item" :class="{'active': p === 7}" @click="p=7"><i data-lucide="coffee"></i></div>
-    <div class="nav-item" :class="{'active': p === 8}" @click="p=8"><i data-lucide="settings"></i></div>
+<nav>
+    <div class="nav-item" :class="tab === 'home' ? 'active' : ''" @click="tab = 'home'"><i data-lucide="home"></i><span>ГЛАВНАЯ</span></div>
+    <div class="nav-item" :class="tab === 'storage' ? 'active' : ''" @click="tab = 'storage'"><i data-lucide="database"></i><span>СКЛАД</span></div>
+    <div class="nav-item" :class="tab === 'tools' ? 'active' : ''" @click="tab = 'tools'"><i data-lucide="wrench"></i><span>ПУЛЬТ</span></div>
+    <div class="nav-item" :class="tab === 'ai' ? 'active' : ''" @click="tab = 'ai'"><i data-lucide="cpu"></i><span>ИИ-ЦЕХ</span></div>
+    <div class="nav-item" :class="tab === 'rest' ? 'active' : ''" @click="tab = 'rest'"><i data-lucide="coffee"></i><span>ОТДЫХ</span></div>
 </nav>
 
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('artelApp', () => ({
-            p: 1, theme: '',
-            isReg: localStorage.getItem('artel_reg') || false,
-            userName: localStorage.getItem('artel_name') || '',
-            userRank: localStorage.getItem('artel_rank') || 'Личинка инженера',
-            tempName: '', 
-            today: new Date().toLocaleDateString('ru-RU', {day:'numeric', month:'long'}),
-            newMsg: '', msgs: [{u:'АРТЕЛЬ', r:'СИСТЕМА', t:'Терминал обновлен. Ссылки на журналы добавлены.'}],
-            init() { lucide.createIcons(); this.genQR(); },
-            register() {
-                if(this.tempName.length < 2) return;
-                this.userName = this.tempName;
-                this.isReg = true;
-                localStorage.setItem('artel_reg', true);
-                localStorage.setItem('artel_name', this.userName);
-                localStorage.setItem('artel_rank', this.userRank);
+            tab: 'home',
+            currentTime: '',
+            monthName: '',
+            calendar: [],
+
+            init() {
+                this.tick();
+                setInterval(() => this.tick(), 1000);
+                this.buildCalendar();
+                lucide.createIcons();
             },
-            sendM() {
-                if(!this.newMsg) return;
-                this.msgs.push({u: this.userName, r: this.userRank, t: this.newMsg});
-                this.newMsg = '';
+
+            tick() {
+                const now = new Date();
+                this.currentTime = now.toLocaleTimeString();
             },
-            genQR() {
-                const qr = qrcode(0, 'M');
-                qr.addData(window.location.href);
-                qr.make();
-                document.getElementById('qrcode').innerHTML = qr.createImgTag(5);
+
+            buildCalendar() {
+                const now = new Date();
+                this.monthName = now.toLocaleString('ru', { month: 'long' }).toUpperCase() + ' ' + now.getFullYear();
+                
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                
+                // Корректировка начала недели (ПН)
+                let offset = firstDay === 0 ? 6 : firstDay - 1;
+                
+                for(let i=0; i<offset; i++) this.calendar.push({num: ''});
+                for(let i=1; i<=daysInMonth; i++) {
+                    this.calendar.push({
+                        num: i,
+                        isToday: i === now.getDate()
+                    });
+                }
             }
         }));
     });
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </body>
 </html>
