@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>АРТЕЛЬ: ТЕРМИНАЛ v.9.0 (DEEP-THINK)</title>
+    <title>АРТЕЛЬ: v.12.0 [GRAND MASTER]</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
     <style>
         :root {
             --gold: #ffae00;
             --gold-dim: #6b4a1a;
             --bg: #050505;
             --panel: #12100e;
-            --red: #ff3333;
-            --scanline: rgba(255, 174, 0, 0.03);
+            --neon-blue: #00f2ff;
         }
 
         body {
@@ -28,38 +29,21 @@
             text-transform: uppercase;
         }
 
-        /* Эффект мерцания и сканирования ЭЛТ */
+        /* Эффект мерцания ЭЛТ */
         body::after {
             content: " ";
             position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(var(--scanline) 50%, rgba(0, 0, 0, 0) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
             background-size: 100% 3px, 3px 100%;
             pointer-events: none;
             z-index: 1000;
-            animation: flicker 0.15s infinite;
         }
 
-        @keyframes flicker {
-            0% { opacity: 0.97; } 100% { opacity: 1; }
-        }
-
-        header {
-            border-bottom: 2px solid var(--gold-dim);
-            padding: 10px;
-            background: var(--panel);
-            text-align: center;
-            box-shadow: 0 0 15px rgba(255, 174, 0, 0.1);
-        }
-
-        .main-view {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        /* СЕТКА 50/25/25 */
+        header { border-bottom: 2px solid var(--gold-dim); padding: 10px; background: var(--panel); text-align: center; }
+        .main-view { flex: 1; padding: 15px; overflow-y: auto; }
+        
         .grid-layout {
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
@@ -73,416 +57,184 @@
             background: var(--panel);
             border: 2px solid var(--gold-dim);
             padding: 15px;
-            position: relative;
             box-shadow: inset 0 0 20px #000;
             display: flex;
             flex-direction: column;
         }
-
         .block-main { grid-row: span 2; }
 
-        h2 {
-            margin: 0 0 10px 0;
-            font-size: 0.9rem;
-            color: var(--gold);
-            border-bottom: 1px solid var(--gold-dim);
-            padding-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Кнопки */
+        h2 { margin: 0 0 10px 0; font-size: 0.9rem; color: var(--gold); border-bottom: 1px solid var(--gold-dim); padding-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        
         .btn {
-            background: #1a1714;
-            border: 1px solid var(--gold-dim);
-            color: var(--gold);
-            padding: 10px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: 0.2s;
+            background: #1a1714; border: 1px solid var(--gold-dim); color: var(--gold);
+            padding: 10px; font-size: 0.7rem; text-align: center; cursor: pointer;
+            margin-bottom: 5px; display: block; text-decoration: none;
         }
-        .btn:hover {
-            background: var(--gold);
-            color: #000;
-            font-weight: bold;
-            box-shadow: 0 0 10px var(--gold);
-        }
+        .btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 10px var(--gold); }
 
-        /* Навигация */
-        nav {
-            background: #000;
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            border-top: 2px solid var(--gold-dim);
-        }
-        .nav-item {
-            color: var(--gold-dim);
-            cursor: pointer;
-            text-align: center;
-            transition: 0.3s;
-            flex: 1;
-        }
-        .nav-item.active {
-            color: var(--gold);
-            filter: drop-shadow(0 0 8px var(--gold));
-        }
+        input { background: #000; color: var(--gold); border: 1px solid var(--gold-dim); padding: 8px; width: 100%; box-sizing: border-box; outline: none; font-family: monospace; }
 
-        /* Календарь */
-        .cal-box { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 0.65rem; text-align: center; }
-        .cal-day { border: 1px solid #222; padding: 4px; }
-        .cal-today { background: var(--gold-dim); color: #fff; border-color: var(--gold); }
-
-        /* Модальные окна */
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 2000;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .modal {
-            background: var(--panel);
-            border: 2px solid var(--gold);
-            padding: 20px;
-            width: 90%; max-width: 600px;
-            box-shadow: 0 0 30px var(--gold-dim);
-        }
-
-        textarea {
-            width: 100%;
-            background: #000;
-            color: var(--gold);
-            border: 1px solid var(--gold-dim);
-            padding: 10px;
-            font-family: monospace;
-            outline: none;
-            resize: none;
-        }
+        nav { background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 2px solid var(--gold-dim); }
+        .nav-item { color: var(--gold-dim); cursor: pointer; flex: 1; text-align: center; transition: 0.3s; }
+        .nav-item.active { color: var(--gold); filter: drop-shadow(0 0 8px var(--gold)); }
 
         .neon { color: var(--gold); text-shadow: 0 0 5px var(--gold); }
-        .warn { color: var(--red); animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .gm-title { color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue); font-weight: bold; }
+        
+        #chat-scroller { flex: 1; overflow-y: auto; font-size: 0.75rem; margin-bottom: 10px; }
+        .msg { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
     </style>
 </head>
-<body x-data="artelOS">
+<body x-data="artelApp">
 
 <header>
-    <div class="neon" style="letter-spacing: 5px; font-weight: bold;">ЦЕНТРАЛЬНЫЙ ТЕРМИНАЛ АРТЕЛИ</div>
+    <div class="neon" style="letter-spacing: 5px; font-weight: bold;">АРТЕЛЬ • УПРАВЛЕНИЕ ОБЛАКОМ • v.12.0</div>
 </header>
 
 <main class="main-view">
     
     <div class="grid-layout" x-show="tab === 'home'">
         <div class="block block-main">
-            <h2><i data-lucide="book"></i> УСТАВ АРТЕЛИ</h2>
-            <div style="overflow-y:auto; font-size: 0.8rem; padding-right: 10px;">
-                <p class="neon">1. ТБ — НЕ ДОГМА. ПАЛЬЦЕВ ВСЕГО ДЕСЯТЬ.</p>
-                <p>2. ИЗОЛЕНТА — ЛЕЧИТ ПРОВОДКУ, ТРЕЩИНЫ И ДУШУ.</p>
-                <p>3. МАТ — СОКРАЩАЕТ ВРЕМЯ РЕМОНТА НА 40%.</p>
-                <p>4. КЛЮЧ НА 13 — ВСЕГДА ТЕРЯЕТСЯ ПЕРВЫМ.</p>
-                <p>5. НЕ КРУТИТСЯ — ВОЗЬМИ РЫЧАГ. СЛОМАЛОСЬ — ТАК И БЫЛО.</p>
+            <h2><i data-lucide="scroll"></i> УСТАВ ВЕЛИКОЙ АРТЕЛИ</h2>
+            <div style="font-size: 0.7rem;">
+                <p class="neon">ГРАНД МАСТЕР СИНЕЙ КАТУШКИ ПОВЕЛЕВАЕТ:</p>
+                <p>1. ТБ — ПИСАНА КРОВЬЮ, ЧИТАЙ ГЛАЗАМИ.</p>
+                <p>2. СИНЯЯ ИЗОЛЕНТА — СИЛА. ЧЕРНАЯ — ДЛЯ ДИЛЕТАНТОВ.</p>
+                <p>3. МАСТОДОНТЫ И ГРАНД МАСТЕРЫ МОГУТ ПОВЫШАТЬ ЛИЧИНОК.</p>
                 <hr style="border-color: var(--gold-dim)">
-                <h3 class="neon">ТАБЕЛЬ О РАНГАХ:</h3>
-                <p>• [МАСТОДОНТ] — АДМИНИСТРАТОР СИСТЕМЫ</p>
-                <p>• [ГРАНД-МАСТЕР] — ГУРУ СИНЕЙ ИЗОЛЕНТЫ</p>
-                <p>• [ИНЖЕНЕР] — ГЕНИЙ ГАРАЖНОЙ МЫСЛИ</p>
-                <p>• [ЛИЧИНКА] — УЧЕНИК (ПРИНЕСИ-ПОДАЙ)</p>
+                <p class="gm-title">ТЕКУЩИЙ СТАТУС: В СЕТИ</p>
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="calendar"></i> <span x-text="monthName"></span></h2>
-            <div class="cal-box">
-                <template x-for="d in ['П','В','С','Ч','П','С','В']"><b><div x-text="d"></div></b></template>
-                <template x-for="day in calendarDays"><div class="cal-day" :class="day.today ? 'cal-today' : ''" x-text="day.num"></div></template>
-            </div>
+            <h2><i data-lucide="calendar"></i> КАЛЕНДАРЬ</h2>
+            <div id="date-display" class="neon" style="text-align:center; font-size:1.2rem;" x-text="todayDate"></div>
         </div>
         <div class="block">
             <h2><i data-lucide="clock"></i> СИСТЕМНОЕ ВРЕМЯ</h2>
-            <div class="neon" style="font-size: 2.2rem; text-align: center;" x-text="time"></div>
-        </div>
-    </div>
-
-    <div class="grid-layout" x-show="tab === 'storage'">
-        <div class="block block-main">
-            <h2><i data-lucide="package"></i> ЯЩИКИ ХРАНЕНИЯ</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1;">
-                <div class="btn" @click="openBox('МЕХАНИКА')"><i data-lucide="settings"></i> МЕХАНИКА</div>
-                <div class="btn" @click="openBox('ЭЛЕКТРИКА')"><i data-lucide="zap"></i> ЭЛЕКТРИКА</div>
-                <div class="btn" @click="openBox('КУЗОВ')"><i data-lucide="truck"></i> КУЗОВ</div>
-                <div class="btn" @click="openBox('РАЗНОЕ')"><i data-lucide="folder"></i> РАЗНОЕ</div>
-            </div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="image"></i> МЕДИА-АРХИВ</h2>
-            <div class="btn">ЗАГРУЗИТЬ ФОТО</div>
-            <div class="btn">ЗАГРУЗИТЬ ВИДЕО</div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="hard-drive"></i> СТАТУС БАЗЫ</h2>
-            <div style="font-size:0.7rem;">ЛОГИ: <span class="neon" x-text="logsCount"></span></div>
-            <div style="height:10px; background:#000; border:1px solid var(--gold-dim); margin-top:10px;">
-                <div style="width:42%; height:100%; background:var(--gold);"></div>
-            </div>
+            <div class="neon" style="font-size: 2rem; text-align: center;" x-text="time"></div>
         </div>
     </div>
 
     <div class="grid-layout" x-show="tab === 'chat'">
         <div class="block block-main">
-            <h2><i data-lucide="message-square"></i> РАДИОРУБКА</h2>
-            <div style="flex:1; overflow-y:auto; font-size:0.8rem; margin-bottom:10px;" id="chat-scroller">
+            <h2><i data-lucide="cloud"></i> ЭФИР ГРАНД МАСТЕРА</h2>
+            <div id="chat-scroller">
                 <template x-for="m in messages">
-                    <div style="margin-bottom:8px; border-bottom: 1px solid #222;">
-                        <span class="neon" x-text="m.user"></span>: <span x-text="m.text"></span>
+                    <div class="msg">
+                        <span :class="m.rank === 'ГРАНД МАСТЕР' ? 'gm-title' : 'neon'" x-text="'[' + m.rank + '] ' + m.user_name"></span>: 
+                        <span x-text="m.content"></span>
                     </div>
                 </template>
             </div>
             <div style="display:flex; gap:5px;">
-                <input type="text" x-model="chatInput" @keyup.enter="sendChat" style="flex:1; background:#000; color:var(--gold); border:1px solid var(--gold-dim); padding:8px;" placeholder="ВВЕДИТЕ СООБЩЕНИЕ...">
-                <button class="btn" @click="sendChat" style="margin:0;">ОТПРАВИТЬ</button>
+                <input type="text" x-model="chatInput" @keyup.enter="sendToCloud" placeholder="ВВОД СООБЩЕНИЯ...">
+                <button class="btn" @click="sendToCloud" style="margin:0; width:60px;">OK</button>
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="users"></i> В СЕТИ</h2>
-            <div style="font-size:0.7rem;">
-                <div class="neon">● МАСТОДОНТ (ВЫ)</div>
-                <div style="color:gray;">○ ГОСТЬ_312</div>
-                <div style="color:gray;">○ ГОСТЬ_884</div>
-            </div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="radio"></i> СТАТУС ЭФИРА</h2>
-            <div style="font-size:0.6rem; color:var(--gold);">ЧАСТОТА: 144.500 MHz<br>ШИФРОВАНИЕ: ВКЛЮЧЕНО</div>
-        </div>
-    </div>
-
-    <div class="grid-layout" x-show="tab === 'tools'">
-        <div class="block block-main">
-            <h2><i data-lucide="wrench"></i> ТЕХНИЧЕСКИЙ ПУЛЬТ</h2>
-            <a href="https://podshypnik.info/" target="_blank" class="btn">ПОДБОР ПОДШИПНИКОВ</a>
-            <a href="https://www.oil-seal.ru/" target="_blank" class="btn">КАТАЛОГ САЛЬНИКОВ</a>
-            <a href="https://ardio.ru/obd2.php" target="_blank" class="btn">КОДЫ OBD-II (РАСШИФРОВКА)</a>
-            <a href="https://cyberleninka.ru/" target="_blank" class="btn">КИБЕРЛЕНИНКА (НАУКА)</a>
-            <a href="https://dpva.ru/" target="_blank" class="btn">ИНЖЕНЕРНЫЙ СПРАВОЧНИК</a>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="microscope"></i> СПРАВКА</h2>
+            <h2><i data-lucide="zap"></i> РАНГИ</h2>
             <div style="font-size:0.6rem;">
-                > ТАБЛИЦЫ ДОПУСКОВ<br>
-                > МОМЕНТЫ ЗАТЯЖКИ<br>
-                > ВЕС МЕТАЛЛА
+                ВИТАЛИЙ: <span class="gm-title">ГРАНД МАСТЕР</span><br>
+                ОСТАЛЬНЫЕ: <span style="color:gray;">ЛИЧИНКИ</span>
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="search"></i> ПОИСК</h2>
-            <input type="text" placeholder="АРТИКУЛ..." style="width:100%; background:#000; border:1px solid var(--gold-dim); color:var(--gold); padding:5px;">
-        </div>
-    </div>
-
-    <div class="grid-layout" x-show="tab === 'prompts'">
-        <div class="block block-main">
-            <h2><i data-lucide="zap"></i> ПРОМТ-КОВБОЙ</h2>
-            <div style="font-size:0.75rem;">
-                <p class="neon">ПРАВИЛО МАСТЕРА:</p>
-                <p>НЕ ПРОСИ "СДЕЛАЙ", А ГОВОРИ: "ТЫ — ВЕДУЩИЙ ИНЖЕНЕР..."</p>
-                <hr style="border-color:var(--gold-dim)">
-                <a href="https://t.me/PromptCowboy" target="_blank" class="btn">ПРОМТ КОВБОЙ (TELEGRAM)</a>
-                <a href="https://flowgpt.com/" target="_blank" class="btn">FLOW GPT (БАЗА ПРОМТОВ)</a>
-            </div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="terminal"></i> ОБУЧЕНИЕ</h2>
-            <div style="font-size:0.6rem;">СТРУКТУРА: РОЛЬ + ЗАДАЧА + КОНТЕКСТ + ФОРМАТ.</div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="copy"></i> ШАБЛОНЫ</h2>
-            <div class="btn" style="font-size:0.5rem;">КОПИРОВАТЬ "ИНЖЕНЕР"</div>
-        </div>
-    </div>
-
-    <div class="grid-layout" x-show="tab === 'ai'">
-        <div class="block block-main">
-            <h2><i data-lucide="cpu"></i> ИИ МОЩНОСТИ</h2>
-            <div class="warn" style="font-size:0.7rem; margin-bottom:10px; border:1px solid var(--red); padding:5px;">! ВНИМАНИЕ: ТРЕБУЕТСЯ VPN ДЛЯ GOOGLE / CLAUDE !</div>
-            <a href="https://gemini.google.com/" target="_blank" class="btn">GOOGLE GEMINI (ГЛАВНЫЙ)</a>
-            <a href="https://chat.deepseek.com/" target="_blank" class="btn">DEEPSEEK (БЕЗ VPN)</a>
-            <a href="https://notebooklm.google.com/" target="_blank" class="btn">NOTEBOOK LM (АНАЛИЗ)</a>
-            <a href="https://1.1.1.1/" target="_blank" class="btn" style="border-color:var(--neon)">СКАЧАТЬ VPN (WARP)</a>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="music"></i> МЕДИА-ИИ</h2>
-            <a href="https://suno.com/" target="_blank" class="btn">SUNO (МУЗЫКА)</a>
-            <a href="https://leonardo.ai/" target="_blank" class="btn">LEONARDO (ГРАФИКА)</a>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="drafting-compass"></i> ЧЕРТЕЖИ</h2>
-            <div style="font-size:0.6rem;">GEMINI ПОНИМАЕТ ФОТО ЧЕРТЕЖЕЙ И СХЕМ.</div>
-        </div>
-    </div>
-
-    <div class="grid-layout" x-show="tab === 'rest'">
-        <div class="block block-main">
-            <h2><i data-lucide="radio"></i> РАДИО БЕЛАРУСИ</h2>
-            <div style="overflow-y:auto; flex:1;">
-                <a href="https://radio-live.by/avtoradio" target="_blank" class="btn">АВТОРАДИО</a>
-                <a href="https://radiostalica.by/" target="_blank" class="btn">РАДИО СТАЛИЦА</a>
-                <a href="https://radiomir.by/" target="_blank" class="btn">РАДИО МИР</a>
-                <a href="https://liderfm.by/" target="_blank" class="btn">ЛИДЕР ФМ</a>
-                <a href="https://radio-live.by/radiogrodno" target="_blank" class="btn">РАДИО ГРОДНО</a>
-                <a href="https://rusradio.by/" target="_blank" class="btn">РУССКОЕ РАДИО</a>
-            </div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="library"></i> АРХИВЫ</h2>
-            <a href="https://zhurnalko.net/journal-18" target="_blank" class="btn">МОД-КОНСТРУКТОР</a>
-            <a href="https://zhurnalko.net/journal-41" target="_blank" class="btn">ЮНЫЙ ТЕХНИК / ЛЕВША</a>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="smile"></i> ОТДЫХ</h2>
-            <a href="https://www.yaplakal.com/" target="_blank" class="btn">Я ПЛАКАЛЬ</a>
-            <a href="https://pikabu.ru/" target="_blank" class="btn">ПИКАБУ</a>
+            <h2><i data-lucide="activity"></i> СИНХРОН</h2>
+            <div style="font-size:0.6rem;" x-text="cloudStatus"></div>
         </div>
     </div>
 
     <div class="grid-layout" x-show="tab === 'settings'">
         <div class="block block-main">
-            <h2><i data-lucide="user"></i> ЛИЧНОЕ ДЕЛО</h2>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <label style="font-size:0.7rem;">ПОЗЫВНОЙ:</label>
-                <input type="text" x-model="userName" @change="saveUser" style="background:#000; color:var(--gold); border:1px solid var(--gold-dim); padding:10px;">
-                <label style="font-size:0.7rem;">СТАЖ (ЛЕТ):</label>
-                <input type="number" x-model="userExp" @change="saveUser" style="background:#000; color:var(--gold); border:1px solid var(--gold-dim); padding:10px;">
-                <div class="btn" @click="alert('ДАННЫЕ ЗАПИСАНЫ В БАЗУ')">СОХРАНИТЬ В ПАМЯТЬ</div>
+            <h2><i data-lucide="settings"></i> КОНФИГУРАЦИЯ</h2>
+            <p class="gm-title">ГРАНД МАСТЕР СИНЕЙ КАТУШКИ</p>
+            <p style="font-size:0.6rem;">PROJECT: grsszunlfmehyykkvccj</p>
+            <div class="btn" @click="alert('СИСТЕМА ОБНОВЛЕНА')">ПЕРЕЗАГРУЗИТЬ ЯДРО</div>
+        </div>
+        <div class="block">
+            <h2><i data-lucide="qr-code"></i> QR КЛЮЧ</h2>
+            <div style="background:#fff; padding:5px; margin:auto; width:100px; height:100px;">
+                <img id="qr-img" style="width:100%; height:100%;">
             </div>
         </div>
         <div class="block">
-            <h2><i data-lucide="qr-code"></i> ШАРИНГ</h2>
-            <div style="background:#fff; width:100px; height:100px; margin:auto; display:flex; align-items:center; justify-content:center; color:#000; font-size:0.5rem; text-align:center;">
-                QR: ARTEL-PWA
-            </div>
-        </div>
-        <div class="block">
-            <h2><i data-lucide="info"></i> СИСТЕМА</h2>
-            <div style="font-size:0.6rem;">ВЕРСИЯ: 9.0.26<br>ЯДРО: DEEP-THINK<br>СТАТУС: НОРМА</div>
+            <h2><i data-lucide="database"></i> БАЗА</h2>
+            <div style="font-size:0.5rem; color:var(--gold);">CONNECTED TO SUPABASE POSTGRES</div>
         </div>
     </div>
-
-    <template x-if="activeBox">
-        <div class="overlay" x-cloak>
-            <div class="modal">
-                <h2 x-text="'ЗАПИСЬ В ЯЩИК: ' + activeBox"></h2>
-                <textarea rows="10" x-model="storageData[activeBox]"></textarea>
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="btn" style="flex:1" @click="saveStorage()">СОХРАНИТЬ</button>
-                    <button class="btn" style="flex:1" @click="activeBox = null">ЗАКРЫТЬ</button>
-                </div>
-            </div>
-        </div>
-    </template>
 
 </main>
 
 <nav>
-    <div class="nav-item" :class="tab === 'home' ? 'active' : ''" @click="tab = 'home'"><i data-lucide="home"></i><span>ГЛАВНАЯ</span></div>
-    <div class="nav-item" :class="tab === 'storage' ? 'active' : ''" @click="tab = 'storage'"><i data-lucide="package"></i><span>СКЛАД</span></div>
-    <div class="nav-item" :class="tab === 'chat' ? 'active' : ''" @click="tab = 'chat'"><i data-lucide="message-square"></i><span>ЭФИР</span></div>
-    <div class="nav-item" :class="tab === 'tools' ? 'active' : ''" @click="tab = 'tools'"><i data-lucide="wrench"></i><span>ПУЛЬТ</span></div>
-    <div class="nav-item" :class="tab === 'prompts' ? 'active' : ''" @click="tab = 'prompts'"><i data-lucide="zap"></i><span>ПРОМТ</span></div>
-    <div class="nav-item" :class="tab === 'ai' ? 'active' : ''" @click="tab = 'ai'"><i data-lucide="cpu"></i><span>ИИ</span></div>
-    <div class="nav-item" :class="tab === 'rest' ? 'active' : ''" @click="tab = 'rest'"><i data-lucide="coffee"></i><span>ОТДЫХ</span></div>
-    <div class="nav-item" :class="tab === 'settings' ? 'active' : ''" @click="tab = 'settings'"><i data-lucide="settings"></i><span>ОПЦИИ</span></div>
+    <div class="nav-item" :class="tab === 'home' ? 'active' : ''" @click="tab = 'home'"><i data-lucide="shield"></i></div>
+    <div class="nav-item" :class="tab === 'chat' ? 'active' : ''" @click="tab = 'chat'"><i data-lucide="message-square"></i></div>
+    <div class="nav-item" :class="tab === 'settings' ? 'active' : ''" @click="tab = 'settings'"><i data-lucide="settings"></i></div>
 </nav>
 
 <script>
+    // --- ДАННЫЕ ВИТАЛИЯ ---
+    const SB_URL = 'https://grsszunlfmehyykkvccj.supabase.co';
+    const SB_KEY = 'sb_publishable_lOjqRJ2R_tHLo0GiLPjaYA_6UYCfCaX'; 
+
+    const supabase = supabase.createClient(SB_URL, SB_KEY);
+
     document.addEventListener('alpine:init', () => {
-        Alpine.data('artelOS', () => ({
+        Alpine.data('artelApp', () => ({
             tab: 'home',
             time: '',
-            monthName: '',
-            calendarDays: [],
-            activeBox: null,
-            storageData: { 'МЕХАНИКА': '', 'ЭЛЕКТРИКА': '', 'КУЗОВ': '', 'РАЗНОЕ': '' },
-            logsCount: 0,
-            messages: [{user: 'СИСТЕМА', text: 'ТЕРМИНАЛ АКТИВИРОВАН. СВЯЗЬ УСТАНОВЛЕНА.'}],
+            todayDate: '',
             chatInput: '',
-            userName: 'МАСТЕР',
-            userExp: 10,
+            messages: [],
+            cloudStatus: 'ПОДКЛЮЧЕНИЕ...',
 
             init() {
                 this.updateClock();
                 setInterval(() => this.updateClock(), 1000);
-                this.renderCal();
+                this.todayDate = new Date().toLocaleDateString('ru-RU');
+                this.genQR();
                 lucide.createIcons();
-                
-                // Загрузка данных
-                const savedStore = localStorage.getItem('artel_v9_storage');
-                if(savedStore) {
-                    this.storageData = JSON.parse(savedStore);
-                    this.updateLogStats();
+                this.fetchChat();
+                this.listenChat();
+            },
+
+            updateClock() { this.time = new Date().toLocaleTimeString('ru-RU'); },
+
+            genQR() {
+                const link = encodeURIComponent(window.location.href);
+                document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${link}`;
+            },
+
+            async fetchChat() {
+                const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
+                if (data) {
+                    this.messages = data;
+                    this.cloudStatus = 'ОБЛАКО: OK';
+                } else {
+                    this.cloudStatus = 'ОБЛАКО: ЖДЕТ ТАБЛИЦУ';
+                    console.log(error);
                 }
-                const savedUser = localStorage.getItem('artel_user');
-                if(savedUser) {
-                    const u = JSON.parse(savedUser);
-                    this.userName = u.name;
-                    this.userExp = u.exp;
-                }
+                this.scrollDown();
             },
 
-            updateClock() {
-                this.time = new Date().toLocaleTimeString('ru-RU');
+            listenChat() {
+                supabase.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                    this.messages.push(payload.new);
+                    this.scrollDown();
+                }).subscribe();
             },
 
-            renderCal() {
-                const now = new Date();
-                this.monthName = now.toLocaleString('ru-RU', { month: 'long' }).toUpperCase();
-                const year = now.getFullYear();
-                const month = now.getMonth();
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                
-                // Сдвиг для ПН (в JS 0 - ВС)
-                let offset = firstDay === 0 ? 6 : firstDay - 1;
-                
-                this.calendarDays = [];
-                for(let i=0; i<offset; i++) this.calendarDays.push({num: ''});
-                for(let i=1; i<=daysInMonth; i++) {
-                    this.calendarDays.push({ num: i, today: i === now.getDate() });
-                }
-            },
-
-            openBox(name) { this.activeBox = name; },
-
-            saveStorage() {
-                localStorage.setItem('artel_v9_storage', JSON.stringify(this.storageData));
-                this.updateLogStats();
-                this.activeBox = null;
-            },
-
-            updateLogStats() {
-                this.logsCount = Object.values(this.storageData).filter(v => v.trim().length > 0).length;
-            },
-
-            saveUser() {
-                localStorage.setItem('artel_user', JSON.stringify({name: this.userName, exp: this.userExp}));
-            },
-
-            sendChat() {
+            async sendToCloud() {
                 if(!this.chatInput.trim()) return;
-                this.messages.push({user: this.userName, text: this.chatInput});
+                await supabase.from('messages').insert([{ 
+                    user_name: 'ВИТАЛИЙ', 
+                    rank: 'ГРАНД МАСТЕР', 
+                    content: this.chatInput 
+                }]);
                 this.chatInput = '';
-                // Прокрутка вниз
-                setTimeout(() => {
-                    const c = document.getElementById('chat-scroller');
-                    c.scrollTop = c.scrollHeight;
-                }, 50);
+            },
+
+            scrollDown() {
+                setTimeout(() => { const b = document.getElementById('chat-scroller'); if(b) b.scrollTop = b.scrollHeight; }, 100);
             }
         }));
     });
